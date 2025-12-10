@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # --- DATABASES ---
+  db_user:
+    image: postgres:15-alpine
+    container_name: db_user
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_db
+    volumes:
+      - user_data:/var/lib/postgresql/data
+
+  db_product:
+    image: postgres:15-alpine
+    container_name: db_product
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: product_db
+    volumes:
+      - product_data:/var/lib/postgresql/data
+
+  # --- MICROSERVICES ---
+  userservice:
+    build:
+      context: . # Important: Build context is the project root (../..)
+      dockerfile: src/UserService/Dockerfile
+    container_name: userservice
+    environment:
+      # Connection string uses the internal service name 'db_user'
+      ConnectionStrings__DefaultConnection: "Host=db_user;Port=5432;Database=user_db;Username=user;Password=password"
+    ports:
+      - "5001:8080" # External: 5001, Internal: 8080
+    depends_on:
+      - db_user
+
+  productcatalogservice:
+    build:
+      context: . 
+      dockerfile: src/ProductCatalogService/Dockerfile
+    container_name: productcatalogservice
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db_product;Port=5432;Database=product_db;Username=user;Password=password"
+    ports:
+      - "5002:8080"
+    depends_on:
+      - db_product
+
+  # --- API GATEWAY ---
+  apigateway:
+    build:
+      context: . 
+      dockerfile: src/ApiGateway/Dockerfile
+    container_name: apigateway
+    ports:
+      - "80:8080" # The main entry point for client requests
+    depends_on:
+      - userservice
+      - productcatalogservice
+
+volumes:
+  user_data:
+  product_data:
