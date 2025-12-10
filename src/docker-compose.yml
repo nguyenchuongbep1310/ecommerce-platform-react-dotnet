@@ -9,6 +9,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: user_db
+    ports:
+      - "5432:5432" # Expose for local development
     volumes:
       - user_data:/var/lib/postgresql/data
 
@@ -19,14 +21,16 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: product_db
+    ports:
+      - "5433:5432" # Expose for local development (different port)
     volumes:
       - product_data:/var/lib/postgresql/data
 
   # --- MICROSERVICES ---
   userservice:
     build:
-      context: . # Important: Build context is the project root (../..)
-      dockerfile: src/UserService/Dockerfile
+      context: .. # Build context is the project root
+      dockerfile: src/UserService/UserService/Dockerfile
     container_name: userservice
     environment:
       # Connection string uses the internal service name 'db_user'
@@ -38,8 +42,8 @@ services:
 
   productcatalogservice:
     build:
-      context: . 
-      dockerfile: src/ProductCatalogService/Dockerfile
+      context: ..
+      dockerfile: src/ProductCatalogService/ProductCatalogService/Dockerfile
     container_name: productcatalogservice
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_product;Port=5432;Database=product_db;Username=user;Password=password"
@@ -51,8 +55,8 @@ services:
   # --- API GATEWAY ---
   apigateway:
     build:
-      context: . 
-      dockerfile: src/ApiGateway/Dockerfile
+      context: ..
+      dockerfile: src/ApiGateway/ApiGateway/Dockerfile
     container_name: apigateway
     ports:
       - "80:8080" # The main entry point for client requests

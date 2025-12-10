@@ -1,5 +1,5 @@
 ﻿# Stage 1: Build the application (using SDK image)
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy all projects files to restore dependencies
@@ -12,7 +12,7 @@ WORKDIR /src/src/ApiGateway
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Create the final runtime image (using ASP.NET runtime image)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # Copy the published output from the build stage
