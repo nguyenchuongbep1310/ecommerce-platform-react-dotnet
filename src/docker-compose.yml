@@ -22,7 +22,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: product_db
     ports:
-      - "5433:5432" # Expose for local development (different port)
+      - "5434:5432" # Expose for local development (different port)
     volumes:
       - product_data:/var/lib/postgresql/data
 
