@@ -4,12 +4,12 @@ WORKDIR /src
 
 # Copy all projects files to restore dependencies across the solution structure
 # This is a key step when building multiple services from the root context
-COPY ["src/UserService/UserService.csproj", "src/UserService/"]
-RUN dotnet restore "src/UserService/UserService.csproj"
+COPY ["src/UserService/UserService/UserService.csproj", "src/UserService/UserService/"]
+RUN dotnet restore "src/UserService/UserService/UserService.csproj"
 
 # Copy the rest of the code and publish
 COPY . .
-WORKDIR /src/src/UserService
+WORKDIR /src/src/UserService/UserService
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Create the final runtime image (using ASP.NET runtime image)

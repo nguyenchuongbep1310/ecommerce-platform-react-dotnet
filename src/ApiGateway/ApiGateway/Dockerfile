@@ -3,12 +3,12 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy all projects files to restore dependencies
-COPY ["src/ApiGateway/ApiGateway.csproj", "src/ApiGateway/"]
-RUN dotnet restore "src/ApiGateway/ApiGateway.csproj"
+COPY ["src/ApiGateway/ApiGateway/ApiGateway.csproj", "src/ApiGateway/ApiGateway/"]
+RUN dotnet restore "src/ApiGateway/ApiGateway/ApiGateway.csproj"
 
 # Copy the rest of the code and publish
 COPY . .
-WORKDIR /src/src/ApiGateway
+WORKDIR /src/src/ApiGateway/ApiGateway
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Create the final runtime image (using ASP.NET runtime image)
