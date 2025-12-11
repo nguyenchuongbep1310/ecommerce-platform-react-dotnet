@@ -48,6 +48,18 @@ services:
     volumes:
       - order_data:/var/lib/postgresql/data
 
+  # --- MESSAGE BROKER ---
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # RabbitMQ Management UI (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
   # --- MICROSERVICES ---
   userservice:
     build:
@@ -100,6 +112,16 @@ services:
       - db_order
       - shoppingcartservice
       - productcatalogservice # It needs the product service to run first
+      - paymentservice
+      - rabbitmq
+
+  paymentservice:
+    build:
+      context: ..
+      dockerfile: src/PaymentService/PaymentService/Dockerfile
+    container_name: paymentservice
+    ports:
+      - "5005:8080"
 
   # --- API GATEWAY ---
   apigateway:

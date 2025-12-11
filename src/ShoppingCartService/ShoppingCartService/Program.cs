@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShoppingCartService.Data;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,23 @@ builder.Services.AddHttpClient("ProductClient", client =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ShoppingCartService.Consumers.OrderPlacedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        // Configures the consumer endpoints automatically
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 
