@@ -40,7 +40,7 @@ namespace ProductCatalogService.Controllers
         }
 
         // For simplicity, we skip POST/PUT/DELETE for MVP, but they would go here.
-        
+
         // Example for internal check (needed by Cart Service later):
         [HttpGet("{id}/price")]
         public async Task<ActionResult<decimal>> GetProductPrice(int id)
@@ -51,6 +51,32 @@ namespace ProductCatalogService.Controllers
                 return NotFound();
             }
             return product.Price;
+        }
+
+        // POST: api/Products/1/reduce-stock
+        [HttpPost("{id}/reduce-stock")]
+        public async Task<IActionResult> ReduceStock(int id, [FromBody] Dictionary<string, int> request)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound("Product not found.");
+            }
+
+            if (!request.TryGetValue("quantity", out int quantityToReduce) || quantityToReduce <= 0)
+            {
+                return BadRequest("Invalid quantity.");
+            }
+
+            if (product.StockQuantity < quantityToReduce)
+            {
+                return BadRequest($"Insufficient stock. Available: {product.StockQuantity}");
+            }
+
+            product.StockQuantity -= quantityToReduce;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Stock updated successfully." });
         }
     }
 }

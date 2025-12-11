@@ -21,7 +21,7 @@ namespace ShoppingCartService.Controllers
         }
 
         // Simplification: We use a static dummy User ID for MVP since we haven't integrated auth yet.
-        private const string DummyUserId = "testuser@example.com"; 
+        private const string DummyUserId = "chuong"; 
         
         // GET: api/Cart/{userId}
         [HttpGet("{userId}")]

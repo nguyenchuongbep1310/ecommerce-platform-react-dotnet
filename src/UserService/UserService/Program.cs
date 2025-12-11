@@ -68,7 +68,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure database is created and migrations applied on startup
+// Ensure a database is created and migrations applied on startup
 // NOTE: This is fine for development but should be handled by a proper migration tool/job in production.
 using (var scope = app.Services.CreateScope())
 {

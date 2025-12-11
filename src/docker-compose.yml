@@ -36,6 +36,18 @@ services:
     volumes:
       - cart_data:/var/lib/postgresql/data
 
+  db_order:
+    image: postgres:15-alpine
+    container_name: db_order
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: order_db
+    ports:
+      - "5436:5432" # Expose for local development
+    volumes:
+      - order_data:/var/lib/postgresql/data
+
   # --- MICROSERVICES ---
   userservice:
     build:
@@ -75,6 +87,20 @@ services:
       - db_cart
       - productcatalogservice # It needs the product service to run first
 
+  orderservice:
+    build:
+      context: ..
+      dockerfile: src/OrderService/OrderService/Dockerfile
+    container_name: orderservice
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db_order;Port=5432;Database=order_db;Username=user;Password=password"
+    ports:
+      - "5004:8080"
+    depends_on:
+      - db_order
+      - shoppingcartservice
+      - productcatalogservice # It needs the product service to run first
+
   # --- API GATEWAY ---
   apigateway:
     build:
@@ -91,3 +117,4 @@ volumes:
   user_data:
   product_data:
   cart_data:
+  order_data:
