@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "6HOJnrqLU6E=",
+  "dgSpecHash": "f0tc9JERYY0=",
   "success": true,
   "projectFilePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/UserService/UserService/UserService.csproj",
   "expectedPackageFiles": [
+    "/Users/chuongnguyen/.nuget/packages/consul/1.7.14.9/consul.1.7.14.9.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/10.0.0/microsoft.aspnetcore.authentication.jwtbearer.10.0.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.identity.entityframeworkcore/10.0.0/microsoft.aspnetcore.identity.entityframeworkcore.10.0.0.nupkg.sha512",

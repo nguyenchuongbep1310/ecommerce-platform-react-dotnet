@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "k0xr90hwVNA=",
+  "dgSpecHash": "yIcVx9IqoA4=",
   "success": true,
   "projectFilePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ProductCatalogService/ProductCatalogService/ProductCatalogService.csproj",
   "expectedPackageFiles": [
+    "/Users/chuongnguyen/.nuget/packages/consul/1.7.14.9/consul.1.7.14.9.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.openapi/10.0.0/microsoft.aspnetcore.openapi.10.0.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.build/17.7.2/microsoft.build.17.7.2.nupkg.sha512",

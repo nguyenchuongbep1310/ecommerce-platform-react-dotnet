@@ -1,7 +1,7 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamPathTemplate": "/api/Auth/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -9,13 +9,14 @@
           "Port": 8080
         }
       ],
-      "UpstreamPathTemplate": "/api/user/{everything}",
+      "ServiceName": null,
+      "UpstreamPathTemplate": "/api/user/auth/{everything}",
       "UpstreamHttpMethod": [
         "Post"
       ]
     },
     {
-      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamPathTemplate": "/api/Products/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -29,7 +30,7 @@
       ]
     },
     {
-      "DownstreamPathTemplate": "/api/cart/{everything}",
+      "DownstreamPathTemplate": "/api/Cart/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -37,6 +38,7 @@
           "Port": 8080
         }
       ],
+      "ServiceName": null,
       "UpstreamPathTemplate": "/api/cart/{everything}",
       "UpstreamHttpMethod": [
         "Get",
@@ -62,6 +64,14 @@
     }
   ],
   "GlobalConfiguration": {
+    "ServiceDiscoveryProvider": {
+      "Host": "consul",
+      "Port": 8500,
+      "Type": "PollConsul", // Use polling to ensure we get fresh service updates
+      "PollingInterval": 1000,
+      "Token": null,
+      "ConfigurationKey": null
+    },
     "BaseUrl": "http://localhost"
   }
 }

@@ -1,9 +1,9 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCartService.Data;
 using ShoppingCartService.DTOs;
 using ShoppingCartService.Models;
-using System.Text.Json;
 
 namespace ShoppingCartService.Controllers
 {
@@ -21,14 +21,14 @@ namespace ShoppingCartService.Controllers
         }
 
         // Simplification: We use a static dummy User ID for MVP since we haven't integrated auth yet.
-        private const string DummyUserId = "chuong"; 
-        
+        private const string DummyUserId = "chuong";
+
         // GET: api/Cart/{userId}
         [HttpGet("{userId}")]
         public async Task<ActionResult<CartResponseDto>> GetCart(string userId)
         {
-            var cart = await _context.Carts
-                .Include(c => c.Items)
+            var cart = await _context
+                .Carts.Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
@@ -40,14 +40,16 @@ namespace ShoppingCartService.Controllers
             var cartDto = new CartResponseDto
             {
                 UserId = cart.UserId,
-                Items = cart.Items.Select(item => new CartItemDto
-                {
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    PriceAtAddition = item.PriceAtAddition
-                }).ToList()
+                Items = cart
+                    .Items.Select(item => new CartItemDto
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        PriceAtAddition = item.PriceAtAddition,
+                    })
+                    .ToList(),
             };
-            
+
             // NOTE: In a real scenario, you'd call ProductCatalogService again here to get the current names/images.
 
             return Ok(cartDto);
@@ -72,7 +74,9 @@ namespace ShoppingCartService.Controllers
             var price = decimal.Parse(priceString.Trim('"')); // Handle JSON quoted string result
 
             // 2. Find or Create Cart
-            var cart = await _context.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.UserId == DummyUserId);
+            var cart = await _context
+                .Carts.Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == DummyUserId);
 
             if (cart == null)
             {
@@ -90,17 +94,37 @@ namespace ShoppingCartService.Controllers
             }
             else
             {
-                cart.Items.Add(new CartItem 
-                { 
-                    ProductId = request.ProductId, 
-                    Quantity = request.Quantity,
-                    PriceAtAddition = price,
-                    CartId = DummyUserId 
-                });
+                cart.Items.Add(
+                    new CartItem
+                    {
+                        ProductId = request.ProductId,
+                        Quantity = request.Quantity,
+                        PriceAtAddition = price,
+                        CartId = DummyUserId,
+                    }
+                );
             }
 
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Item added to cart successfully." });
+        }
+
+        // DELETE: api/Cart/{userId}
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> ClearCart(string userId)
+        {
+            var cart = await _context
+                .Carts.Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            if (cart == null)
+            {
+                return NotFound("Cart not found.");
+            }
+
+            _context.Carts.Remove(cart);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Cart cleared successfully." });
         }
     }
 }

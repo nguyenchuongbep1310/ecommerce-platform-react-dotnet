@@ -145,6 +145,15 @@ services:
       - userservice
       - productcatalogservice
 
+  # --- INFRASTRUCTURE SERVICES --- (Add this block)
+  consul:
+    image: hashicorp/consul:1.15.5
+    container_name: consul
+    command: "agent -server -bootstrap-expect=1 -ui -client=0.0.0.0"
+    ports:
+      - "8500:8500" # Consul UI and HTTP API
+      - "8600:8600/udp" # DNS interface
+
 volumes:
   user_data:
   product_data:

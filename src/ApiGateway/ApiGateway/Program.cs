@@ -1,19 +1,19 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
-// using Ocelot.Provider.Consul; // We'll use this later, but keep it minimal for now.
+using Ocelot.Provider.Consul;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure the builder to use ocelot.json configuration file
 builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 
-// Add Ocelot services
-builder.Services.AddOcelot();
-
 // Standard services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add Ocelot services
+builder.Services.AddOcelot().AddConsul();
 
 var app = builder.Build();
 
