@@ -4,13 +4,13 @@ WORKDIR /src
 
 # Copy all projects files to restore dependencies across the solution structure
 # This is a key step when building multiple services from the root context
-COPY ["src/OrderService/OrderService/OrderService.csproj", "src/OrderService/OrderService/"]
+COPY ["src/NotificationService/NotificationService/NotificationService.csproj", "src/NotificationService/NotificationService/"]
 COPY ["src/Shared.Messages/Shared.Messages.csproj", "src/Shared.Messages/"]
-RUN dotnet restore "src/OrderService/OrderService/OrderService.csproj"
+RUN dotnet restore "src/NotificationService/NotificationService/NotificationService.csproj"
 
 # Copy the rest of the code and publish
 COPY . .
-WORKDIR /src/src/OrderService/OrderService
+WORKDIR /src/src/NotificationService/NotificationService
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Create the final runtime image (using ASP.NET runtime image)
@@ -25,4 +25,4 @@ ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080 
 
 # Define the entry point
-ENTRYPOINT ["dotnet", "OrderService.dll"]
+ENTRYPOINT ["dotnet", "NotificationService.dll"]
