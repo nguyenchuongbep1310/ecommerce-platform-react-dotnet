@@ -25,8 +25,21 @@ jobs:
       - name: Build
         run: dotnet build src/ecommerce-platform.sln --no-restore --configuration Release
 
+      - name: Start Services
+        run: |
+          docker compose -f src/docker-compose.yml up -d --build
+          echo "Waiting for services to initialize..."
+          sleep 60
+
+      - name: Check Running Containers
+        run: docker ps -a
+
       - name: Test
         run: dotnet test src/ecommerce-platform.sln --no-build --configuration Release --verbosity normal
+
+      - name: Stop Services
+        if: always()
+        run: docker compose -f src/docker-compose.yml down
 
   publish-images:
     name: Publish to Docker Hub
