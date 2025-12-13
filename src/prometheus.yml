@@ -1,0 +1,15 @@
+# prometheus.yml (Place this in your root project folder)
+global:
+  scrape_interval: 15s # By default, scrape targets every 15 seconds.
+
+scrape_configs:
+  # The Prometheus server itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # The API Gateway (Our first .NET target)
+  - job_name: "apigateway"
+    static_configs:
+      # Use the Docker service name and the exposed metrics port
+      - targets: ["apigateway:8080"]

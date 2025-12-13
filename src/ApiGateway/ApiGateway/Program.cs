@@ -1,8 +1,8 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Consul;
-
 using Serilog;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +24,12 @@ builder.Services.AddSwaggerGen();
 
 // Add Ocelot services
 builder.Services.AddOcelot().AddConsul();
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation() // Monitor inbound HTTP requests
+               .AddPrometheusExporter(); // Enable the /metrics endpoint
+    });
 
 var app = builder.Build();
 
@@ -34,8 +40,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseOpenTelemetryPrometheusScrapingEndpoint(); // Exposes the metrics at /metrics
 // 1. Map Controllers (optional, but good practice if gateway has its own endpoints)
-app.MapControllers(); 
+app.MapControllers();
 
 // 2. Add Ocelot middleware to the pipeline
 await app.UseOcelot();
