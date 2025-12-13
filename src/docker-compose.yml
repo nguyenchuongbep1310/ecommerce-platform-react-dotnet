@@ -132,6 +132,7 @@ services:
       - "5006:8080"
     depends_on:
       - rabbitmq
+      - seq
 
   # --- API GATEWAY ---
   apigateway:
@@ -160,10 +161,15 @@ services:
     environment:
       # Optional: To persist logs across container restarts
       - ACCEPT_EULA=Y
-      - SEQ_FIRSTRUN_ADMINPASSWORD=password
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+      - ACCEPT_EULA=Y
     ports:
       - "5341:80" # Seq UI access port (http://localhost:5341)
       - "5342:5341" # Ingestion port for logs
+    networks:
+      default:
+        aliases:
+          - seq_server
 
   prometheus:
     image: prom/prometheus:latest

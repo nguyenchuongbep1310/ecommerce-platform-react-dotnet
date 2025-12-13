@@ -1,8 +1,19 @@
+using Serilog;
 using MassTransit;
 using NotificationService.Consumers;
 
 Console.WriteLine("--- STARTING NOTIFICATION SERVICE ---");
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Serilog.Debugging.SelfLog.Enable(Console.Error);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.Seq("http://seq_server") 
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add MassTransit configuration
 builder.Services.AddMassTransit(x =>

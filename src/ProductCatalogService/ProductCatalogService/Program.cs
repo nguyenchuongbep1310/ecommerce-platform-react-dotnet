@@ -76,6 +76,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
     context.Database.Migrate();
+    DbInitializer.Initialize(context);
 }
 
 app.Run();

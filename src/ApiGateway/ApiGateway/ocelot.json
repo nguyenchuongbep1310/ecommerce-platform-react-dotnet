@@ -82,7 +82,7 @@
     "ServiceDiscoveryProvider": {
       "Host": "consul",
       "Port": 8500,
-      "Type": "PollConsul", // Use polling to ensure we get fresh service updates
+      "Type": "PollConsul",
       "PollingInterval": 1000,
       "Token": null,
       "ConfigurationKey": null
