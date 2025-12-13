@@ -74,9 +74,27 @@ app.MapHealthChecks("/health"); // Expose Health Check Endpoint
 // Apply Migrations on Startup and Seed Data
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
-    context.Database.Migrate();
-    DbInitializer.Initialize(context);
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var context = services.GetRequiredService<ProductDbContext>();
+
+    // Retry logic for DB connection
+    for (int i = 0; i < 5; i++)
+    {
+        try
+        {
+            context.Database.Migrate();
+            DbInitializer.Initialize(context);
+            logger.LogInformation("Database migrated and initialized successfully.");
+            break; 
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning($"Database migration failed (Attempt {i + 1}/5): {ex.Message}");
+            if (i == 4) throw; // Throw on last attempt
+            System.Threading.Thread.Sleep(2000);
+        }
+    }
 }
 
 app.Run();
