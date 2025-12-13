@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using OrderService.Data;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,9 +18,46 @@ builder.Services.AddHttpClient("PaymentClient", client => client.BaseAddress = n
 builder.Services.AddHttpClient("ProductClient", client => client.BaseAddress = new Uri(builder.Configuration["ProductCatalogServiceUrl"]!));
 
 
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// --- AUTHENTICATION & AUTHORIZATION ---
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"];
+
+// Ensure key is not null before proceeding
+if (!string.IsNullOrEmpty(secretKey))
+{
+    var key = Encoding.ASCII.GetBytes(secretKey);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // Only for dev
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+}
+else
+{
+    // Fallback or log warning if JWT is not configured (prevent startup crash if config is missing)
+    Console.WriteLine("Warning: JwtSettings:SecretKey is missing configuration.");
+}
 
 builder.Services.AddMassTransit(x =>
 {
@@ -36,6 +76,8 @@ builder.Services.AddMassTransit(x =>
 var app = builder.Build();
 
 // ... standard pipeline configuration (Swagger, Authorization)
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

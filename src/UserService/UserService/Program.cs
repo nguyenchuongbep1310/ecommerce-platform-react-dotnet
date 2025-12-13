@@ -89,23 +89,16 @@ try
     {
         // The health check is CRITICAL for Consul to monitor the service
         var httpPort = app.Configuration.GetValue<int>("ASPNETCORE_HTTP_PORTS");
-        var hostName = Dns.GetHostName();
-        var ipAddress =
-            Dns.GetHostEntry(hostName)
-                .AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork)
-                ?.ToString()
-            ?? "localhost";
-
         var registration = new AgentServiceRegistration()
         {
             ID = registrationId,
             Name = "userservice", // This is the service name Ocelot will look up!
-            Address = ipAddress, // Use IP Address!
+            Address = "userservice", // Use the Docker Service Name!
             Port = httpPort, // The internal container port (8080)
             Tags = new[] { "userservice", "auth" },
             Check = new AgentServiceCheck()
             {
-                HTTP = $"http://{ipAddress}:{httpPort}/health", // Health Check Endpoint
+                HTTP = $"http://userservice:{httpPort}/health", // Health Check Endpoint
                 Interval = TimeSpan.FromSeconds(10),
                 DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(30),
                 Timeout = TimeSpan.FromSeconds(5),

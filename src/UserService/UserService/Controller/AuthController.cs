@@ -7,6 +7,9 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UserService.DTOs; // You will create this
+using UserService.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace UserService.Controllers
 {
@@ -16,11 +19,13 @@ namespace UserService.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly ApplicationDbContext _context;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration, ApplicationDbContext context)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _context = context;
         }
 
         // POST: api/Auth/register
@@ -72,6 +77,36 @@ namespace UserService.Controllers
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetUserProfile()
+        {
+            // 1. Get the User ID from the JWT token claims
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            // 2. Look up the user by the ID
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId); 
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // 3. Return a simplified profile view
+            return Ok(new
+            {
+                user.Id,
+                user.Email,
+                user.UserName
+            });
         }
     }
 }

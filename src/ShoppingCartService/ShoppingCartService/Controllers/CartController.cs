@@ -76,11 +76,11 @@ namespace ShoppingCartService.Controllers
             // 2. Find or Create Cart
             var cart = await _context
                 .Carts.Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.UserId == DummyUserId);
+                .FirstOrDefaultAsync(c => c.UserId == request.UserId);
 
             if (cart == null)
             {
-                cart = new Cart { UserId = DummyUserId };
+                cart = new Cart { UserId = request.UserId };
                 _context.Carts.Add(cart);
             }
 
@@ -100,7 +100,7 @@ namespace ShoppingCartService.Controllers
                         ProductId = request.ProductId,
                         Quantity = request.Quantity,
                         PriceAtAddition = price,
-                        CartId = DummyUserId,
+                        CartId = request.UserId,
                     }
                 );
             }

@@ -16,6 +16,21 @@
       ]
     },
     {
+      "DownstreamPathTemplate": "/api/Auth/profile",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userservice",
+          "Port": 8080
+        }
+      ],
+      "ServiceName": null,
+      "UpstreamPathTemplate": "/api/user/profile",
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
+    },
+    {
       "DownstreamPathTemplate": "/api/Products/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Shared.Messages.Events;
+using System.Security.Claims;
 
 namespace OrderService.Controllers
 {
@@ -26,9 +27,14 @@ namespace OrderService.Controllers
 
         // POST: api/Orders/place
         [HttpPost("place")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> PlaceOrder()
         {
-            var userId = DummyUserId;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID not found in token.");
+            }
 
             // --- 1. Get Cart Data from ShoppingCartService ---
             var cartClient = _clientFactory.CreateClient("CartClient");
@@ -36,7 +42,7 @@ namespace OrderService.Controllers
 
             if (!cartResponse.IsSuccessStatusCode)
             {
-                return BadRequest("Could not retrieve cart data or cart is empty.");
+                return BadRequest($"Could not retrieve cart data or cart is empty for user '{userId}'.");
             }
 
             // Deserialize cart response (using JsonElement for flexible parsing)
@@ -137,6 +143,46 @@ namespace OrderService.Controllers
                 return NotFound();
             }
             return order;
+        }
+
+        // GET: api/Orders/history
+        [HttpGet("history")]
+        public async Task<IActionResult> GetOrderHistory()
+        {
+            // 1. Get the User ID from the JWT token claims
+            // NOTE: This assumes the User ID (or unique identifier) is passed in the JWT.
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            // 2. Retrieve all orders for this user, including their items
+            var orders = await _context.Orders
+                .Where(o => o.UserId == userId)
+                .Include(o => o.Items)
+                .Select(o => new
+                {
+                    o.Id,
+                    o.OrderDate,
+                    o.TotalAmount,
+                    o.Status,
+                    Items = o.Items.Select(i => new
+                    {
+                        i.ProductId,
+                        i.Quantity,
+                        i.UnitPrice
+                    })
+                })
+                .ToListAsync();
+
+            if (!orders.Any())
+            {
+                return Ok(new { Message = "No orders found for this user." });
+            }
+
+            return Ok(orders);
         }
     }
 }
