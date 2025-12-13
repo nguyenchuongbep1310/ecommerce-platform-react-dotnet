@@ -154,6 +154,17 @@ services:
       - "8500:8500" # Consul UI and HTTP API
       - "8600:8600/udp" # DNS interface
 
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    environment:
+      # Optional: To persist logs across container restarts
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=password
+    ports:
+      - "5341:80" # Seq UI access port (http://localhost:5341)
+      - "5342:5341" # Ingestion port for logs
+
 volumes:
   user_data:
   product_data:
