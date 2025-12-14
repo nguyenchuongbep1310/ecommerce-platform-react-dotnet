@@ -10,7 +10,7 @@
         }
       ],
       "ServiceName": null,
-      "UpstreamPathTemplate": "/api/user/auth/{everything}",
+      "UpstreamPathTemplate": "/api/Auth/{everything}",
       "UpstreamHttpMethod": [
         "Post"
       ]
@@ -25,7 +25,7 @@
         }
       ],
       "ServiceName": null,
-      "UpstreamPathTemplate": "/api/user/profile",
+      "UpstreamPathTemplate": "/api/Auth/profile",
       "UpstreamHttpMethod": [
         "Get"
       ]
@@ -39,7 +39,7 @@
           "Port": 8080
         }
       ],
-      "UpstreamPathTemplate": "/api/products/{everything}",
+      "UpstreamPathTemplate": "/api/Products/{everything}",
       "UpstreamHttpMethod": [
         "Get"
       ]
@@ -70,7 +70,7 @@
           "Port": 8080
         }
       ],
-      "UpstreamPathTemplate": "/api/orders/{everything}",
+      "UpstreamPathTemplate": "/api/Orders/{everything}",
       "UpstreamHttpMethod": [
         "Get",
         "Post",

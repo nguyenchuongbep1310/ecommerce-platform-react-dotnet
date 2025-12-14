@@ -25,6 +25,16 @@ builder.Services.AddHealthChecks();
 
 // Add Ocelot services
 builder.Services.AddOcelot().AddConsul();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy",
+        builder => builder
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
 builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics =>
     {
@@ -40,6 +50,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("CorsPolicy"); // 1. Enable CORS before Ocelot
 
 app.UseOpenTelemetryPrometheusScrapingEndpoint(); // Exposes the metrics at /metrics
 app.MapHealthChecks("/health");
