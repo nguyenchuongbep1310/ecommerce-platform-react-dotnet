@@ -38,9 +38,11 @@ builder.Services.AddMassTransit(x =>
 
 // We keep the API boilerplate (optional for a pure consumer service)
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
 // ... standard pipeline
+app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();

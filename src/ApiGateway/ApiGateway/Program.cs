@@ -21,6 +21,7 @@ builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks();
 
 // Add Ocelot services
 builder.Services.AddOcelot().AddConsul();
@@ -41,6 +42,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseOpenTelemetryPrometheusScrapingEndpoint(); // Exposes the metrics at /metrics
+app.MapHealthChecks("/health");
+
 // 1. Map Controllers (optional, but good practice if gateway has its own endpoints)
 app.MapControllers();
 

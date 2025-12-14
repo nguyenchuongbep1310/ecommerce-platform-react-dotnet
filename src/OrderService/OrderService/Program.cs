@@ -14,10 +14,16 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
 
 // 2. HttpClientFactory Setup
 builder.Services.AddHttpClient("CartClient", client => client.BaseAddress = new Uri(builder.Configuration["CartServiceUrl"]!));
-builder.Services.AddHttpClient("PaymentClient", client => client.BaseAddress = new Uri(builder.Configuration["PaymentServiceUrl"]!));
-builder.Services.AddHttpClient("ProductClient", client => client.BaseAddress = new Uri(builder.Configuration["ProductCatalogServiceUrl"]!));
 
+builder.Services.AddHttpClient("PaymentClient", client => client.BaseAddress = new Uri(builder.Configuration["PaymentServiceUrl"]!))
+    .AddStandardResilienceHandler();
 
+builder.Services.AddHttpClient("ProductClient", client => client.BaseAddress = new Uri(builder.Configuration["ProductCatalogServiceUrl"]!))
+    .AddStandardResilienceHandler();
+
+// 3. Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<OrderDbContext>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -80,6 +86,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 // Apply Migrations on Startup
 using (var scope = app.Services.CreateScope())

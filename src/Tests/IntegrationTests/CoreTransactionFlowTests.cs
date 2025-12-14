@@ -12,7 +12,7 @@ namespace IntegrationTests
         private readonly ITestOutputHelper _output;
         private readonly RestClient _client;
         private readonly string _baseUrl = "http://localhost:80"; // API Gateway
-        private readonly string _seqUrl = "http://localhost:5341"; // Seq for logging verification
+        // private readonly string _seqUrl = "http://localhost:5341"; // Seq for logging verification (Unused)
 
         public CoreTransactionFlowTests(ITestOutputHelper output)
         {
@@ -155,21 +155,21 @@ namespace IntegrationTests
         // DTOs
         private class LoginResponse
         {
-            public string Token { get; set; }
-            public string Email { get; set; }
-            public string Id { get; set; }
+            public string? Token { get; set; }
+            public string? Email { get; set; }
+            public string? Id { get; set; }
         }
 
         private class ProductDto
         {
             public int Id { get; set; }
-            public string Name { get; set; }
+            public string? Name { get; set; }
             public decimal Price { get; set; }
         }
 
         private class OrderResponse
         {
-            public string Message { get; set; }
+            public string? Message { get; set; }
             public int OrderId { get; set; } // Assuming OrderId is int
         }
     }

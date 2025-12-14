@@ -30,7 +30,8 @@ builder.Services.AddHttpClient(
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks(); // Add Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CartDbContext>(); // Add Health Checks
 
 builder.Services.AddMassTransit(x =>
 {

@@ -15,7 +15,8 @@ builder.Services.AddDbContext<ProductDbContext>(options => options.UseNpgsql(con
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks(); // Add Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ProductDbContext>(); // Add Health Checks
 
 // Add Consul service registration
 builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(consulConfig =>

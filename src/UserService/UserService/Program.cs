@@ -68,7 +68,8 @@ try
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-    builder.Services.AddHealthChecks(); // Add Health Checks
+    builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>(); // Add Health Checks
 
     var registrationId = $"{builder.Environment.ApplicationName}-{builder.Environment.EnvironmentName}";
 
