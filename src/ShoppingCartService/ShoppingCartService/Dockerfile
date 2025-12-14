@@ -13,7 +13,7 @@ WORKDIR /src/src/ShoppingCartService/ShoppingCartService
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Create the final runtime image (using ASP.NET runtime image)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
 
 # Copy the published output from the build stage
