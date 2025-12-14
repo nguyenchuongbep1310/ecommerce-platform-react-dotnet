@@ -39,6 +39,8 @@ The system uses a mix of synchronous HTTP calls (via **Consul** lookup) and asyn
 1.  **Synchronous (HTTP):** External Client $\rightarrow$ **API Gateway** $\rightarrow$ **Consul** $\rightarrow$ **Order Service** $\rightarrow$ **Cart, Product, Payment** Services.
 2.  **Asynchronous (Event-Driven):** **Order Service** (Publishes `OrderPlacedEvent`) $\rightarrow$ **RabbitMQ** $\rightarrow$ **Notification Service** (Consumes event).
 
+![Architecture Diagram](docs/images/generated_architecture.png)
+
 ---
 
 ## 2. ⚙️ Getting Started (Local Setup)
