@@ -62,7 +62,7 @@ const CartPage = () => {
     }
 
     return (
-        <div className="container" style={{ paddingTop: '8rem', paddingBottom: '4rem' }}>
+        <div className="container page-header-spacer" style={{ paddingBottom: '4rem' }}>
             <h1 style={{ marginBottom: '2rem' }}>Shopping Cart</h1>
             
             {orderStatus === 'error' && (
@@ -73,7 +73,7 @@ const CartPage = () => {
 
             <div className="glass-panel" style={{ padding: '2rem' }}>
                 {cartItems.map(item => (
-                    <div key={item.id} style={{ 
+                    <div key={item.id} className="cart-item" style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center', 

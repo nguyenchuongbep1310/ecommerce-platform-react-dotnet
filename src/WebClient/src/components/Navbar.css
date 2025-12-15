@@ -1,0 +1,122 @@
+.navbar {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 2rem);
+    max-width: 1280px;
+    padding: 1rem 2rem;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.nav-logo h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    font-weight: 500;
+}
+
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-text-main);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.nav-overlay {
+    display: none;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .navbar {
+        top: 0;
+        width: 100%;
+        border-radius: 0;
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.95); /* Darker background for readability on mobile navbar */
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        height: 100vh;
+        width: 75%;
+        max-width: 300px;
+        background: var(--color-bg-dark);
+        flex-direction: column;
+        justify-content: center;
+        gap: 2rem;
+        padding: 2rem;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1001;
+        align-items: flex-start; /* Align text to left in drawer */
+    }
+
+    .nav-links.active {
+        right: 0;
+    }
+
+    .nav-links a, .nav-links button {
+        font-size: 1.2rem;
+        width: 100%;
+        display: block;
+    }
+
+    .mobile-toggle {
+        display: block;
+        z-index: 1002;
+    }
+
+    /* Overlay when menu is open */
+    .nav-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        z-index: 1000;
+    }
+    
+    .nav-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    /* Close button inside menu */
+    .menu-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: var(--color-text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+}

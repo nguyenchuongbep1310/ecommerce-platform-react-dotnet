@@ -32,7 +32,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="auth-container">
             <div className="glass-panel" style={{ padding: '3rem', width: '100%', maxWidth: '400px' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Create Account</h2>
                 

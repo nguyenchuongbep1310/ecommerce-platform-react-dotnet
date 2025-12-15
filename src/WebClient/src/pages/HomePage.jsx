@@ -88,9 +88,9 @@ const HomePage = () => {
     );
 
     return (
-        <main className="container" style={{ paddingTop: '8rem', textAlign: 'center', paddingBottom: '4rem' }}>
+        <main className="container page-header-spacer" style={{ textAlign: 'center', paddingBottom: '4rem' }}>
             <h1 className="animate-fade-in" style={{ 
-            fontSize: 'clamp(3rem, 5vw, 5rem)', 
+            fontSize: 'clamp(2.5rem, 8vw, 5rem)', 
             lineHeight: '1.1', 
             marginBottom: '1.5rem',
             fontWeight: '800' 
@@ -100,7 +100,7 @@ const HomePage = () => {
             </h1>
             
             <p className="animate-fade-in" style={{ 
-            fontSize: '1.25rem', 
+            fontSize: 'clamp(1rem, 4vw, 1.25rem)',
             color: 'var(--color-text-muted)', 
             marginBottom: '3rem', 
             maxWidth: '600px', 
@@ -112,8 +112,15 @@ const HomePage = () => {
             
             {error && <div style={{ color: 'var(--color-secondary)', marginBottom: '2rem' }}>Note: {error}</div>}
 
-            <div className="animate-fade-in" style={{ animationDelay: '0.2s', marginBottom: '4rem' }}>
-                <button className="btn btn-primary" style={{ marginRight: '1rem' }}>Shop Now</button>
+            <div className="animate-fade-in" style={{ 
+                animationDelay: '0.2s', 
+                marginBottom: '4rem',
+                display: 'flex',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
+                <button className="btn btn-primary">Shop Now</button>
                 <Link to="/collections" className="btn glass-panel">View Collections</Link>
             </div>
             

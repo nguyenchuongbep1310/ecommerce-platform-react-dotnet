@@ -11,7 +11,7 @@ namespace IntegrationTests
     {
         private readonly ITestOutputHelper _output;
         private readonly RestClient _client;
-        private readonly string _baseUrl = "http://localhost:80"; // API Gateway
+        private readonly string _baseUrl = "http://localhost:8080"; // API Gateway (Direct)
         // private readonly string _seqUrl = "http://localhost:5341"; // Seq for logging verification (Unused)
 
         public CoreTransactionFlowTests(ITestOutputHelper output)

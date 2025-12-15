@@ -9,8 +9,8 @@ const collections = [
 
 const CollectionsPage = () => {
     return (
-        <div className="container" style={{ paddingTop: '8rem', paddingBottom: '4rem' }}>
-            <h1 className="animate-fade-in" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '3rem' }}>
+        <div className="container page-header-spacer" style={{ paddingBottom: '4rem' }}>
+            <h1 className="animate-fade-in" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
                 <span className="text-gradient">Curated Collections</span>
             </h1>
             <p className="animate-fade-in" style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '4rem', maxWidth: '600px', marginInline: 'auto' }}>
