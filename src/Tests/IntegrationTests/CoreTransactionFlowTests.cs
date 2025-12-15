@@ -44,7 +44,7 @@ namespace IntegrationTests
             var password = "Password123!";
             
             _output.WriteLine($"Step 1: Registering user {email}...");
-            var registerRequest = new RestRequest("api/user/auth/register", Method.Post);
+            var registerRequest = new RestRequest("api/Auth/register", Method.Post);
             registerRequest.AddJsonBody(new { Email = email, Password = password });
             var registerResponse = await _client.ExecuteAsync(registerRequest);
             
@@ -60,7 +60,7 @@ namespace IntegrationTests
             }
 
             _output.WriteLine("Step 2: Logging in...");
-            var loginRequest = new RestRequest("api/user/auth/login", Method.Post);
+            var loginRequest = new RestRequest("api/Auth/login", Method.Post);
             loginRequest.AddJsonBody(new { Email = email, Password = password });
             var loginResponse = await _client.ExecuteAsync<LoginResponse>(loginRequest);
             
@@ -82,7 +82,7 @@ namespace IntegrationTests
 
             // 2. Browse Products and Add to Cart
             _output.WriteLine("Step 3: Getting products...");
-            var productsRequest = new RestRequest("api/products", Method.Get);
+            var productsRequest = new RestRequest("api/Products", Method.Get);
             var productsResponse = await _client.ExecuteAsync<List<ProductDto>>(productsRequest);
             
             productsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -110,7 +110,7 @@ namespace IntegrationTests
 
             // 3. Place Order
             _output.WriteLine("Step 5: Placing Order...");
-            var placeOrderRequest = new RestRequest("api/orders/place", Method.Post);
+            var placeOrderRequest = new RestRequest("api/Orders/place", Method.Post);
             placeOrderRequest.AddHeader("Authorization", $"Bearer {token}");
             
             var placeOrderResponse = await _client.ExecuteAsync<OrderResponse>(placeOrderRequest);
@@ -120,6 +120,7 @@ namespace IntegrationTests
                  _output.WriteLine($"Place Order Failed: {placeOrderResponse.Content}");
             }
             placeOrderResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            placeOrderResponse.Data.Should().NotBeNull();
             var orderId = placeOrderResponse.Data.OrderId;
             _output.WriteLine($"Order Placed Successfully! OrderId: {orderId}");
 

@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",
         builder => builder
-            .WithOrigins("http://localhost:5173")
+            .SetIsOriginAllowed(origin => true) // Allow any origin (e.g. Vercel, Localhost)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
