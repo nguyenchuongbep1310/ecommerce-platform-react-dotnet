@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",
         builder => builder
-            .WithOrigins("http://localhost:5173", "https://<your-vercel-app>.vercel.app")
+            .WithOrigins("https://elidia-counterpaned-juli.ngrok-free.dev", "https://<your-vercel-app>.vercel.app")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
