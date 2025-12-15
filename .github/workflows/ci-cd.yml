@@ -41,6 +41,12 @@ jobs:
         if: always()
         run: docker compose -f src/docker-compose.yml down
 
+      - name: "notify vercel"
+        if: always()
+        uses: "vercel/repository-dispatch/actions/status@v1"
+        with:
+          name: "Vercel - ecommerce-platform-react-dotnet: build-and-test"
+
   publish-images:
     name: Publish to Docker Hub
     runs-on: ubuntu-latest
