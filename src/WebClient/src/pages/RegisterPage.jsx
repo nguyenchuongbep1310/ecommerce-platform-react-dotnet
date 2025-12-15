@@ -23,7 +23,11 @@ const RegisterPage = () => {
             await register(email, password);
             navigate('/login'); // Redirect to login after success
         } catch (err) {
-            setError('Registration failed. Try a different email.');
+            // Safe access to error message from backend
+            const message = err.response?.data?.[0]?.description 
+                         || err.response?.data?.message 
+                         || 'Registration failed. Please check your inputs.';
+            setError(message);
         }
     };
 
