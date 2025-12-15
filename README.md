@@ -4,6 +4,11 @@ Follow up: https://roadmap.sh/projects/scalable-ecommerce-platform
 
 This repository contains a full-stack, distributed e-commerce platform built using **.NET 10 Microservices** orchestrated via **Docker Compose**. The architecture is designed for scalability, using Service Discovery (Consul) and Asynchronous Communication (RabbitMQ).
 
+## 📺 Live Demo
+
+Try out the application here:
+👉 **[View Live Demo](https://ecommerce-platform-react-dotnet.vercel.app)**
+
 ---
 
 ## 1. 🏗️ Architecture Overview
