@@ -134,6 +134,19 @@ services:
       - rabbitmq
       - seq
 
+  # --- FRONTEND ---
+  webclient:
+    build:
+      context: ./WebClient
+      dockerfile: Dockerfile
+    container_name: webclient
+    ports:
+      - "80:5173"
+    environment:
+      - API_TARGET=http://apigateway:8080
+    depends_on:
+      - apigateway
+
   # --- API GATEWAY ---
   apigateway:
     build:
@@ -141,7 +154,7 @@ services:
       dockerfile: src/ApiGateway/ApiGateway/Dockerfile
     container_name: apigateway
     ports:
-      - "80:8080" # The main entry point for client requests
+      - "8080:8080" # The main entry point for API requests (Frontend proxies here)
     depends_on:
       - userservice
       - productcatalogservice
