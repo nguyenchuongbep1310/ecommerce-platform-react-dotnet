@@ -25,9 +25,11 @@ builder.Services.AddHttpClient("ProductClient", client => client.BaseAddress = n
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<OrderDbContext>();
 
+// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 // --- AUTHENTICATION & AUTHORIZATION ---
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
