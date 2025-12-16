@@ -60,6 +60,13 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
+  # --- CACHING ---
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
   # --- MICROSERVICES ---
   userservice:
     build:
@@ -81,6 +88,7 @@ services:
     container_name: productcatalogservice
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_product;Port=5432;Database=product_db;Username=user;Password=password"
+      ConnectionStrings__Redis: "redis:6379"
     ports:
       - "5002:8080"
     depends_on:

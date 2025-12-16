@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogService.Data;
 using ProductCatalogService.Models;
+using Microsoft.Extensions.Caching.Distributed;
+// using Microsoft.Extensions.Caching.StackExchangeRedis; // Not strictly needed here, abstraction is enough
 
 namespace ProductCatalogService.Controllers
 {
@@ -10,10 +12,12 @@ namespace ProductCatalogService.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly ProductDbContext _context;
+        private readonly Microsoft.Extensions.Caching.Distributed.IDistributedCache _cache;
 
-        public ProductsController(ProductDbContext context)
+        public ProductsController(ProductDbContext context, Microsoft.Extensions.Caching.Distributed.IDistributedCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         // GET: api/Products
@@ -24,11 +28,22 @@ namespace ProductCatalogService.Controllers
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice)
         {
+            // Create a unique cache key based on all parameters
+            string cacheKey = $"products_{search}_{category}_{minPrice}_{maxPrice}";
+
+            // 1. Check Cache
+            var cachedData = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                // Cache Hit!
+                return System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cachedData)!;
+            }
+
+            // 2. Cache Miss - Query Database
             var query = _context.Products.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                // Simple case-insensitive search
                 query = query.Where(p => p.Name.ToLower().Contains(search.ToLower()) 
                                       || p.Description.ToLower().Contains(search.ToLower()));
             }
@@ -48,7 +63,17 @@ namespace ProductCatalogService.Controllers
                 query = query.Where(p => p.Price <= maxPrice.Value);
             }
 
-            return await query.ToListAsync();
+            var products = await query.ToListAsync();
+
+            // 3. Save to Cache (Expiration 60s)
+            var cacheOptions = new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+            };
+            var serializedData = System.Text.Json.JsonSerializer.Serialize(products);
+            await _cache.SetStringAsync(cacheKey, serializedData, cacheOptions);
+
+            return products;
         }
 
         // GET: api/Products/1

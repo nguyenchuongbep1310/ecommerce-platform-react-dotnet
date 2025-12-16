@@ -24,6 +24,14 @@ builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient
     consulConfig.Address = new Uri("http://consul:8500");
 }));
 
+// 2. Redis Cache Setup
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnection ?? "localhost:6379";
+    options.InstanceName = "ProductCatalog_";
+});
+
 var app = builder.Build();
 
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
