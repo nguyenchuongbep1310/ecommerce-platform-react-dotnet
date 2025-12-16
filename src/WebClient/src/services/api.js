@@ -11,9 +11,9 @@ const api = axios.create({
 });
 
 export const productService = {
-  getAll: async () => {
+  getAll: async (params) => {
     try {
-      const response = await api.get("/api/Products");
+      const response = await api.get("/api/Products", { params });
       return response.data;
     } catch (error) {
       console.error("Error fetching products:", error);

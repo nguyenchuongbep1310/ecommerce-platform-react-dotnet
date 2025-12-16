@@ -8,80 +8,71 @@ const HomePage = () => {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { addToCart } = useCart();
     const [searchParams] = useSearchParams();
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const data = await productService.getAll();
-                setProducts(data);
-                
-                // Extract unique categories
-                const cats = ['All', ...new Set(data.map(p => p.category || 'Uncategorized'))];
-                // Clean up empty categories if any
-                setCategories(cats.filter(c => c));
-                
-                // Apply initial filter from URL if present
-                const initialCategory = searchParams.get('category');
-                
-                if (initialCategory && initialCategory !== 'All') {
-                     setSelectedCategory(initialCategory);
-                     setFilteredProducts(data.filter(p => (p.category || 'Uncategorized') === initialCategory));
-                     
-                     // Scroll to products
-                     setTimeout(() => {
-                         const element = document.getElementById('products');
-                         if(element) element.scrollIntoView({ behavior: 'smooth' });
-                     }, 500);
+    const fetchProducts = async (params = {}) => {
+        setLoading(true);
+        try {
+            // Build query object from params or current state
+            const query = {
+                search: params.search !== undefined ? params.search : searchTerm,
+                category: params.category !== undefined ? (params.category === 'All' ? '' : params.category) : (selectedCategory === 'All' ? '' : selectedCategory),
+                minPrice: params.minPrice !== undefined ? params.minPrice : priceRange.min,
+                maxPrice: params.maxPrice !== undefined ? params.maxPrice : priceRange.max
+            };
 
-                } else {
-                     setFilteredProducts(data);
-                }
+            // Remove empty/null values
+            Object.keys(query).forEach(key => (query[key] === '' || query[key] === null) && delete query[key]);
 
-            } catch (err) {
-                console.error(err);
-                // Fallback for demo if API is down/empty
-                const demoProducts = [
-                    { id: 1, name: "Premium Headphones", price: 299.99, description: "Noise cancelling, high fidelity audio.", category: "Electronics" },
-                    { id: 2, name: "Smart Watch Ultra", price: 499.00, description: "Track your fitness with style.", category: "Electronics" },
-                    { id: 3, name: "Designer Keyboard", price: 159.50, description: "Mechanical switches with custom keycaps.", category: "Accessories" },
-                    { id: 4, name: "Ergonomic Mouse", price: 89.99, description: "Comfort for all-day productivity.", category: "Accessories" },
-                    { id: 5, name: "Leather Bag", price: 199.99, description: "Handcrafted genuine leather.", category: "Fashion" },
-                ];
-                
-                setError('Failed to load products. Using demo data.');
-                setProducts(demoProducts);
-                
-                // Handle fallback filtering
-                const initialCategory = searchParams.get('category');
-                if (initialCategory && initialCategory !== 'All') {
-                     setSelectedCategory(initialCategory);
-                     setFilteredProducts(demoProducts.filter(p => (p.category || 'Uncategorized') === initialCategory));
-                } else {
-                     setFilteredProducts(demoProducts);
-                }
-                setCategories(['All', 'Electronics', 'Accessories', 'Fashion']);
-            } finally {
-                setLoading(false);
+            const data = await productService.getAll(query);
+            
+            setProducts(data);
+            setFilteredProducts(data);
+
+            // Only extract categories if we have a full list (no filters applied yet) or if it's the first load
+            if (categories.length === 0 && Object.keys(query).length === 0) {
+                 const cats = ['All', ...new Set(data.map(p => p.category || 'Uncategorized'))];
+                 setCategories(cats.filter(c => c));
+            } else if (categories.length === 0) {
+                 // Fallback if initial load had filters
+                 setCategories(['All', 'Electronics', 'Accessories', 'Fashion']); 
             }
-        };
 
-        fetchProducts();
-    }, [searchParams]); // Re-run if URL changes
-
-    const filterByCategory = (category) => {
-        setSelectedCategory(category);
-        if (category === 'All') {
-            setFilteredProducts(products);
-        } else {
-            setFilteredProducts(products.filter(p => (p.category || 'Uncategorized') === category));
+        } catch (err) {
+            console.error(err);
+            setError('Failed to load products.');
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (loading) return (
+    useEffect(() => {
+        // Initial load
+        const catParam = searchParams.get('category');
+        if (catParam) {
+            setSelectedCategory(catParam);
+            fetchProducts({ category: catParam });
+        } else {
+            fetchProducts();
+        }
+    }, []); // Only run on mount
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        fetchProducts();
+    };
+
+    const filterByCategory = (category) => {
+        setSelectedCategory(category);
+        fetchProducts({ category });
+    };
+
+    if (loading && products.length === 0) return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="animate-fade-in">Loading luxury items...</div>
         </div>
@@ -112,17 +103,42 @@ const HomePage = () => {
             
             {error && <div style={{ color: 'var(--color-secondary)', marginBottom: '2rem' }}>Note: {error}</div>}
 
-            <div className="animate-fade-in" style={{ 
-                animationDelay: '0.2s', 
-                marginBottom: '4rem',
+            {/* Search and Filters */}
+            <form onSubmit={handleSearch} className="glass-panel" style={{ 
+                marginBottom: '3rem', 
+                padding: '1.5rem',
                 display: 'flex',
-                justifyContent: 'center',
+                gap: '1rem',
                 flexWrap: 'wrap',
-                gap: '1rem'
+                justifyContent: 'center',
+                alignItems: 'center'
             }}>
-                <button className="btn btn-primary">Shop Now</button>
-                <Link to="/collections" className="btn glass-panel">View Collections</Link>
-            </div>
+                <input 
+                    type="text" 
+                    placeholder="Search products..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input 
+                        type="number" 
+                        placeholder="Min Price" 
+                        value={priceRange.min}
+                        onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                        style={{ width: '80px', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                    />
+                    <span>-</span>
+                    <input 
+                        type="number" 
+                        placeholder="Max Price" 
+                        value={priceRange.max}
+                        onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                        style={{ width: '80px', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ padding: '0.5rem 1.5rem' }}>Search</button>
+            </form>
             
             <div id="products" style={{ textAlign: 'left', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <h2 style={{ fontSize: '2rem' }}>Featured Products</h2>
@@ -214,7 +230,7 @@ const HomePage = () => {
             )})}
             {filteredProducts.length === 0 && (
                 <div style={{ gridColumn: '1/-1', padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                    No products found in this category.
+                    No products found matching your search.
                 </div>
             )}
             </div>

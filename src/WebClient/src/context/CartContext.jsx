@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from './AuthContext';
 
@@ -71,34 +72,27 @@ export const CartProvider = ({ children }) => {
         }
     };
 
+    const navigate = useNavigate();
+
     const addToCart = async (product) => {
-        if (user) {
-            try {
-                const userId = user.id || user.userId;
-                await api.post('/api/cart/add', {
-                    userId: userId,
-                    productId: product.id,
-                    quantity: 1
-                });
-                // Re-fetch to sync exact state
-                await fetchServerCart();
-            } catch (error) {
-                console.error("Failed to add to server cart", error);
-                alert("Could not add to cart. Please try again.");
-            }
-        } else {
-            // Local Logic
-            setCartItems(prevItems => {
-                const existingItem = prevItems.find(item => item.id === product.id);
-                if (existingItem) {
-                    return prevItems.map(item =>
-                        item.id === product.id
-                            ? { ...item, quantity: item.quantity + 1 }
-                            : item
-                    );
-                }
-                return [...prevItems, { ...product, quantity: 1 }];
+        if (!user) {
+            alert("You must be logged in to add items to the cart.");
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const userId = user.id || user.userId;
+            await api.post('/api/cart/add', {
+                userId: userId,
+                productId: product.id,
+                quantity: 1
             });
+            // Re-fetch to sync exact state
+            await fetchServerCart();
+        } catch (error) {
+            console.error("Failed to add to server cart", error);
+            alert("Could not add to cart. Please try again.");
         }
     };
 
