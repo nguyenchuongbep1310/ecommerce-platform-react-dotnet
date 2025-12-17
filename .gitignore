@@ -2,3 +2,6 @@
 **/bin/
 **/obj/
 **/.vs
+.env
+*.user
+.DS_Store

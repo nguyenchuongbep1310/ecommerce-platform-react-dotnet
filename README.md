@@ -36,6 +36,7 @@ The system is composed of **7 Core Microservices** and **5 Infrastructure Servic
 | **Seq**        | Centralized Logging  | `http://localhost:5341`                |
 | **Prometheus** | Metrics Collection   | `http://localhost:9090`                |
 | **Grafana**    | Monitoring Dashboard | `http://localhost:3000` (admin/admin)  |
+| **Jaeger**     | Distributed Tracing  | `http://localhost:16686`               |
 
 ### Communication Flow (The Core Transaction)
 
@@ -43,6 +44,7 @@ The system uses a mix of synchronous HTTP calls (via **Consul** lookup) and asyn
 
 1.  **Synchronous (HTTP):** External Client $\rightarrow$ **API Gateway** $\rightarrow$ **Consul** $\rightarrow$ **Order Service** $\rightarrow$ **Cart, Product, Payment** Services.
 2.  **Asynchronous (Event-Driven):** **Order Service** (Publishes `OrderPlacedEvent`) $\rightarrow$ **RabbitMQ** $\rightarrow$ **Notification Service** (Consumes event).
+3.  **Real-Time (SignalR):** **Notification Service** $\rightarrow$ **WebClient** (Push Notification).
 
 ![Architecture Diagram](docs/images/generated_architecture.png)
 
@@ -66,7 +68,7 @@ The system uses a mix of synchronous HTTP calls (via **Consul** lookup) and asyn
     ```
 
 2.  **Build and Run All Services:**
-    The single `docker compose` command builds the 7 microservices, initializes the 4 PostgreSQL databases, and launches all 5 infrastructure components.
+    The single `docker compose` command builds the microservices, initializes the PostgreSQL databases, and launches all infrastructure components.
 
     ```bash
     docker compose up --build -d
@@ -75,7 +77,7 @@ The system uses a mix of synchronous HTTP calls (via **Consul** lookup) and asyn
     _(This may take a few minutes on the first run as images are built and databases are initialized.)_
 
 3.  **Verify Startup:**
-    Check that all 12 containers are running (`Up` status):
+    Check that all containers are running (`Up` status):
     ```bash
     docker ps
     ```
@@ -88,21 +90,23 @@ The system uses a mix of synchronous HTTP calls (via **Consul** lookup) and asyn
 
 Verify the API Gateway, Consul, and Seq are accessible:
 
-- **API Gateway:** `http://localhost/` (Should return 404/Not Found, but accessible)
+- **API Gateway:** `http://localhost:8080`
 - **Consul UI:** `http://localhost:8500`
 - **Seq UI:** `http://localhost:5341`
+- **Jaeger UI:** `http://localhost:16686`
 
-### End-to-End Functional Test
+### End-to-End Manual Test Flow
 
 This sequence verifies the entire platform, including database persistence, inventory reduction, payment processing, and asynchronous notification.
 
-| Step                | Method | URL                                       | Body / Notes                                                                                       |
-| :------------------ | :----- | :---------------------------------------- | :------------------------------------------------------------------------------------------------- |
-| **1. Register**     | `POST` | `http://localhost/api/user/auth/register` | JSON: `{"email": "user@test.com", "password": "Password123!", "fullName": "Test User"}`            |
-| **2. Login**        | `POST` | `http://localhost/api/user/auth/login`    | JSON: `{"email": "user@test.com", "password": "Password123!"}`. **Copy the JWT Token**.            |
-| **3. Load Cart**    | `POST` | `http://localhost/api/cart/add`           | Header `Authorization: Bearer <TOKEN>`<br>JSON: `{"productId": 1, "quantity": 1}`                  |
-| **4. Place Order**  | `POST` | `http://localhost/api/orders/checkout`    | Header `Authorization: Bearer <TOKEN>`<br>JSON: `{"paymentInfo": "CreditCard"}`. Returns Order ID. |
-| **5. Verify Order** | `GET`  | `http://localhost/api/orders/{id}`        | Header `Authorization: Bearer <TOKEN>`<br>Check status is `Placed`.                                |
+| Step               | Method | URL (Gateway: 8080)  | Body / Notes                                                                                         |
+| :----------------- | :----- | :------------------- | :--------------------------------------------------------------------------------------------------- |
+| **1. Register**    | `POST` | `/api/auth/register` | JSON: `{"email": "user@test.com", "password": "Password123!", "fullName": "Test User"}`              |
+| **2. Login**       | `POST` | `/api/auth/login`    | JSON: `{"email": "user@test.com", "password": "Password123!"}`. **Copy the JWT Token**.              |
+| **3. Connect WS**  | `WS`   | `/notificationHub`   | Connect via SignalR Client with Bearer Token. Join Group: `<UserId>`.                                |
+| **4. Load Cart**   | `POST` | `/api/cart/add`      | Header `Authorization: Bearer <TOKEN>`<br>JSON: `{"userId": "<UID>", "productId": 1, "quantity": 1}` |
+| **5. Place Order** | `POST` | `/api/orders/place`  | Header `Authorization: Bearer <TOKEN>`<br>JSON: `{"paymentMethodId": "pm_card_visa"}`.               |
+| **6. Verify**      | -      | -                    | Check SignalR for "Order Placed" alert. Check Jaeger for trace.                                      |
 
 ---
 
@@ -130,9 +134,23 @@ docker run --rm -i \
 
 ---
 
-## 5. 🚀 Deployment
+## 5. 🚀 Kubernetes Deployment
 
-For detailed deployment instructions, including how to push images to Docker Hub and deploy to cloud providers (Azure, AWS, Kubernetes), please refer to the [Deployment Guide](DEPLOYMENT.md).
+A full Helm chart is available in `deploy/k8s/helm`.
+
+### Deploying with Helm
+
+1. Ensure you have a Kubernetes cluster (Minikube, Docker Desktop K8s, or Cloud).
+2. Install the chart:
+   ```bash
+   helm install ecommerce-platform ./deploy/k8s/helm
+   ```
+3. Port-forward the Gateway:
+   ```bash
+   kubectl port-forward svc/apigateway 8080:8080
+   ```
+
+For more details, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
@@ -140,4 +158,4 @@ For detailed deployment instructions, including how to push images to Docker Hub
 
 - **Service Connectivity Issues:** Check `Consul` (http://localhost:8500) to ensure all services are registered and passing health checks.
 - **Database Errors:** Ensure the PostgreSQL containers are healthy. The logs in `Seq` (http://localhost:5341) will provide detailed error traces.
-- **"Username and password required" in CI/CD:** You need to set `DOCKER_USERNAME` and `DOCKER_PASSWORD` in your GitHub Repository Secrets.
+- **SignalR Connection**: If connecting via Gateway, ensure Sticky Sessions are enabled or use WebSockets transport directly to avoid negotiation issues.
