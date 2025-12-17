@@ -3,6 +3,9 @@ using System.Net.Sockets;
 using Consul;
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogService.Data;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 var registrationId = $"{builder.Environment.ApplicationName}-{builder.Environment.EnvironmentName}";
@@ -17,6 +20,29 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ProductDbContext>(); // Add Health Checks
+
+// --- OBSERVABILITY (OpenTelemetry) ---
+const string serviceName = "ProductCatalogService";
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+});
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(serviceName))
+    .WithTracing(tracing =>
+    {
+       tracing
+          .AddAspNetCoreInstrumentation()
+          .AddHttpClientInstrumentation()
+          .AddEntityFrameworkCoreInstrumentation()
+          .AddOtlpExporter(options =>
+          {
+              options.Endpoint = new Uri("http://jaeger:4317"); // OTLP gRPC port
+          });
+    });
 
 // Add Consul service registration
 builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(consulConfig =>

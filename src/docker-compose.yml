@@ -229,6 +229,16 @@ services:
     depends_on:
       - prometheus
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP http
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
 volumes:
   user_data:
   product_data:

@@ -4,6 +4,10 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +29,30 @@ builder.Services.AddHttpClient("ProductClient", client => client.BaseAddress = n
 // 3. Health Checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<OrderDbContext>();
+
+// --- OBSERVABILITY (OpenTelemetry) ---
+const string serviceName = "OrderService";
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+});
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(serviceName))
+    .WithTracing(tracing =>
+    {
+       tracing
+          .AddAspNetCoreInstrumentation()
+          .AddHttpClientInstrumentation()
+          .AddEntityFrameworkCoreInstrumentation()
+          .AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName) // MassTransit Tracing
+          .AddOtlpExporter(options =>
+          {
+              options.Endpoint = new Uri("http://jaeger:4317"); // OTLP gRPC port
+          });
+    });
 
 // Add services to the container.
 builder.Services.AddControllers();

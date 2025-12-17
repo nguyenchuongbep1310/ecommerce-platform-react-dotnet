@@ -1,0 +1,79 @@
+global:
+  environment: development
+
+# Shared configuration
+image:
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# List of microservices to deploy
+services:
+  userservice:
+    image: ecommerce/userservice
+    port: 8080
+    env:
+      ConnectionStrings__DefaultConnection: "Host=postgres-user;Port=5432;Database=user_db;Username=user;Password=password"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__Issuer: "ECommerceUserAuthService"
+      JwtSettings__Audience: "ECommerceClients"
+
+  productcatalogservice:
+    image: ecommerce/productcatalogservice
+    port: 8080
+    env:
+      ConnectionStrings__DefaultConnection: "Host=postgres-product;Port=5432;Database=product_db;Username=user;Password=password"
+      ConnectionStrings__Redis: "redis-master:6379"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+
+  shoppingcartservice:
+    image: ecommerce/shoppingcartservice
+    port: 8080
+    env:
+      ConnectionStrings__DefaultConnection: "Host=postgres-cart;Port=5432;Database=cart_db;Username=user;Password=password"
+      ProductCatalogServiceUrl: "http://productcatalogservice:8080"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+
+  orderservice:
+    image: ecommerce/orderservice
+    port: 8080
+    env:
+      ConnectionStrings__DefaultConnection: "Host=postgres-order;Port=5432;Database=order_db;Username=user;Password=password"
+      CartServiceUrl: "http://shoppingcartservice:8080"
+      PaymentServiceUrl: "http://paymentservice:8080"
+      ProductCatalogServiceUrl: "http://productcatalogservice:8080"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      StripeSettings__SecretKey: "sk_test_placeholder"
+
+  paymentservice:
+    image: ecommerce/paymentservice
+    port: 8080
+
+  notificationservice:
+    image: ecommerce/notificationservice
+    port: 8080
+    env:
+      RabbitMq__Host: "rabbitmq"
+
+  apigateway:
+    image: ecommerce/apigateway
+    port: 8080
+    type: LoadBalancer # Exposed externally
+    env:
+      # Ocelot config is usually baked in or mounted via ConfigMap
+      # This assumes K8s DNS naming (servicename.namespace) matches the Ocelot config or we update Ocelot config
+
+  webclient:
+    image: ecommerce/webclient
+    port: 80
+    type: LoadBalancer
+    env:
+      API_TARGET: "http://apigateway:8080"
+
+# Infrastructure dependencies (Mock / Simple for draft)
+infra:
+  postgres:
+    enabled: true
+  rabbitmq:
+    enabled: true
+  redis:
+    enabled: true
