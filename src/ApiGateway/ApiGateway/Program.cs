@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",
         builder => builder
-            .WithOrigins("https://elidia-counterpaned-juli.ngrok-free.dev", "https://ecommerce-platform-react-dotnet.vercel.app")
+            .WithOrigins("https://media-only-develop-prep.trycloudflare.com", "https://ecommerce-platform-react-dotnet.vercel.app")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
