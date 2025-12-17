@@ -5,6 +5,8 @@ using OrderService.Data;
 using OrderService.Models;
 using Shared.Messages.Events;
 using MassTransit;
+using Stripe;
+using Microsoft.Extensions.Configuration;
 
 namespace OrderService.Application.Handlers
 {
@@ -13,12 +15,14 @@ namespace OrderService.Application.Handlers
         private readonly OrderDbContext _context;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IConfiguration _configuration;
 
-        public CreateOrderHandler(OrderDbContext context, IPublishEndpoint publishEndpoint, IHttpClientFactory clientFactory)
+        public CreateOrderHandler(OrderDbContext context, IPublishEndpoint publishEndpoint, IHttpClientFactory clientFactory, IConfiguration configuration)
         {
             _context = context;
             _publishEndpoint = publishEndpoint;
             _clientFactory = clientFactory;
+            _configuration = configuration;
         }
 
         public async Task<Order> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -56,14 +60,39 @@ namespace OrderService.Application.Handlers
                     }
                 }
 
-                // 3. Process Payment (Mock) - also ideally separate
-                var paymentClient = _clientFactory.CreateClient("PaymentClient");
-                var paymentResponse = await paymentClient.PostAsJsonAsync("/api/payment/process",
-                    new { Amount = total, UserId = request.UserId }, cancellationToken);
-
-                if (!paymentResponse.IsSuccessStatusCode)
+                // 3. Process Payment (Stripe)
+                if (string.IsNullOrEmpty(request.PaymentMethodId))
                 {
-                    throw new Exception("Payment processing failed.");
+                    throw new Exception("Payment Method ID is required for processing.");
+                }
+
+                StripeConfiguration.ApiKey = _configuration["StripeSettings:SecretKey"];
+                var paymentIntentService = new PaymentIntentService();
+                
+                try
+                {
+                    var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
+                    {
+                        Amount = (long)(total * 100),
+                        Currency = "usd",
+                        PaymentMethod = request.PaymentMethodId,
+                        Confirm = true,
+                        ReturnUrl = "https://localhost:5000/order-success",
+                        AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                        {
+                            Enabled = true,
+                            AllowRedirects = "never"
+                        }
+                    }, cancellationToken: cancellationToken);
+
+                    if (paymentIntent.Status != "succeeded")
+                    {
+                        throw new Exception($"Payment not successful. Status: {paymentIntent.Status}");
+                    }
+                }
+                catch (StripeException ex)
+                {
+                    throw new Exception($"Stripe Error: {ex.Message}");
                 }
 
                 await transaction.CommitAsync(cancellationToken);

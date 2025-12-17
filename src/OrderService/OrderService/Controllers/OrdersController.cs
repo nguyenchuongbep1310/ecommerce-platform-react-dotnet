@@ -4,6 +4,7 @@ using OrderService.Application.Queries;
 using MediatR;
 using System.Security.Claims;
 using System.Text.Json;
+using OrderService.DTOs;
 
 namespace OrderService.Controllers
 {
@@ -23,7 +24,7 @@ namespace OrderService.Controllers
         // POST: api/Orders/place
         [HttpPost("place")]
         [Microsoft.AspNetCore.Authorization.Authorize]
-        public async Task<IActionResult> PlaceOrder()
+        public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -50,7 +51,7 @@ namespace OrderService.Controllers
             }
 
             // 2. Map Cart to Command DTO
-            var orderItems = cartItemsJson.Select(item => new OrderItemDto(
+            var orderItems = cartItemsJson.Select(item => new OrderService.Application.Commands.OrderItemDto(
                 item.GetProperty("productId").GetInt32(),
                 item.GetProperty("quantity").GetInt32(),
                 item.GetProperty("priceAtAddition").GetDecimal()
@@ -59,7 +60,7 @@ namespace OrderService.Controllers
             // 3. Send Command
             try 
             {
-                var command = new CreateOrderCommand(userId, orderItems);
+                var command = new CreateOrderCommand(userId, orderItems, request.PaymentMethodId);
                 var order = await _mediator.Send(command);
                 return Ok(new { Message = "Order placed successfully!", OrderId = order.Id });
             }
