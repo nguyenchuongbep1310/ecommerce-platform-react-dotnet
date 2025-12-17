@@ -13,7 +13,8 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // 2. HttpClientFactory Setup
-builder.Services.AddHttpClient("CartClient", client => client.BaseAddress = new Uri(builder.Configuration["CartServiceUrl"]!));
+builder.Services.AddHttpClient("CartClient", client => client.BaseAddress = new Uri(builder.Configuration["CartServiceUrl"]!))
+    .AddStandardResilienceHandler();
 
 builder.Services.AddHttpClient("PaymentClient", client => client.BaseAddress = new Uri(builder.Configuration["PaymentServiceUrl"]!))
     .AddStandardResilienceHandler();
@@ -69,6 +70,14 @@ else
 
 builder.Services.AddMassTransit(x =>
 {
+    // Configure the Transactional Outbox
+    x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
+    {
+        o.QueryDelay = TimeSpan.FromSeconds(1); // How often to check for new messages
+        o.UsePostgres();
+        o.UseBusOutbox(); // Messages sent via IPublishEndpoint are captured by the outbox
+    });
+
     x.UsingRabbitMq((context, cfg) =>
     {
         // Connection to the RabbitMQ service defined in Docker Compose

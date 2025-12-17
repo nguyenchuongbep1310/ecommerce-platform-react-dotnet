@@ -79,6 +79,7 @@ const Navbar = () => {
                                   <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Signed in as</span>
                                   <span style={{ fontWeight: '600' }}>{user.email?.split('@')[0]}</span>
                                 </div>
+                                <Link to="/orders" style={{ fontSize: '0.9rem', color: 'var(--color-primary)' }}>My Orders</Link>
                                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--color-secondary)', cursor: 'pointer', font: 'inherit', textAlign: 'left', padding: 0 }}>
                                     Logout
                                 </button>

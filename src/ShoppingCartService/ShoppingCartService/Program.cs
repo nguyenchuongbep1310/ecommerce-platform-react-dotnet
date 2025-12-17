@@ -25,7 +25,7 @@ builder.Services.AddHttpClient(
     {
         client.BaseAddress = new Uri(builder.Configuration["ProductCatalogServiceUrl"]!);
     }
-);
+).AddStandardResilienceHandler();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

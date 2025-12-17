@@ -31,4 +31,34 @@ export const productService = {
   },
 };
 
+export const orderService = {
+  placeOrder: async () => {
+    try {
+      const response = await api.post("/api/Orders/place");
+      return response.data;
+    } catch (error) {
+      console.error("Error placing order:", error);
+      throw error;
+    }
+  },
+  getHistory: async () => {
+    try {
+      const response = await api.get("/api/Orders/history");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching order history:", error);
+      throw error;
+    }
+  },
+  getById: async (id) => {
+    try {
+      const response = await api.get(`/api/Orders/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching order ${id}:`, error);
+      throw error;
+    }
+  },
+};
+
 export default api;
