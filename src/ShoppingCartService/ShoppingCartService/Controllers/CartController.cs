@@ -33,7 +33,12 @@ namespace ShoppingCartService.Controllers
 
             if (cart == null)
             {
-                return NotFound("Cart not found.");
+                // Return an empty cart instead of 404 to provide a better frontend experience
+                return Ok(new CartResponseDto 
+                { 
+                    UserId = userId, 
+                    Items = new List<CartItemDto>() 
+                });
             }
 
             // Simple mapping to DTO

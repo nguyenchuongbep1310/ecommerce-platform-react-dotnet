@@ -100,7 +100,23 @@ namespace OrderService.Controllers
             }
 
             var orders = await _mediator.Send(new GetOrdersByUserIdQuery(userId));
-            return Ok(orders);
+            
+            var orderDtos = orders.Select(o => new OrderService.DTOs.OrderDto
+            {
+                Id = o.Id,
+                UserId = o.UserId,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                Items = o.Items.Select(i => new OrderService.DTOs.OrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            }).ToList();
+
+            return Ok(orderDtos);
         }
     }
 }
