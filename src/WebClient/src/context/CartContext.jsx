@@ -76,8 +76,18 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = async (product) => {
         if (!user) {
-            alert("You must be logged in to add items to the cart.");
-            navigate('/login');
+            setCartItems(prevItems => {
+                const existingItem = prevItems.find(item => item.id === product.id);
+                if (existingItem) {
+                    return prevItems.map(item =>
+                        item.id === product.id
+                            ? { ...item, quantity: item.quantity + 1 }
+                            : item
+                    );
+                } else {
+                    return [...prevItems, { ...product, quantity: 1 }];
+                }
+            });
             return;
         }
 

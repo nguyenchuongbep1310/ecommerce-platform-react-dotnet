@@ -76,6 +76,10 @@ services:
     environment:
       # Connection string uses the internal service name 'db_user'
       ConnectionStrings__DefaultConnection: "Host=db_user;Port=5432;Database=user_db;Username=user;Password=password"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__Issuer: "ECommerceUserAuthService"
+      JwtSettings__Audience: "ECommerceClients"
+      JwtSettings__TokenLifetimeMinutes: "60"
     ports:
       - "5001:8080" # External: 5001, Internal: 8080
     depends_on:
@@ -89,6 +93,9 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_product;Port=5432;Database=product_db;Username=user;Password=password"
       ConnectionStrings__Redis: "redis:6379"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__Issuer: "ECommerceUserAuthService"
+      JwtSettings__Audience: "ECommerceClients"
     ports:
       - "5002:8080"
     depends_on:
@@ -101,6 +108,9 @@ services:
     container_name: shoppingcartservice
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_cart;Port=5432;Database=cart_db;Username=user;Password=password"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__Issuer: "ECommerceUserAuthService"
+      JwtSettings__Audience: "ECommerceClients"
     ports:
       - "5003:8080" # Assign a new port for direct testing
     depends_on:
@@ -114,6 +124,9 @@ services:
     container_name: orderservice
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_order;Port=5432;Database=order_db;Username=user;Password=password"
+      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__Issuer: "ECommerceUserAuthService"
+      JwtSettings__Audience: "ECommerceClients"
     ports:
       - "5004:8080"
     depends_on:

@@ -9,6 +9,7 @@ namespace ShoppingCartService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class CartController : ControllerBase
     {
         private readonly CartDbContext _context;

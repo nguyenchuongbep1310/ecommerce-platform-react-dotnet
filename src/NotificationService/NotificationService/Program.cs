@@ -1,6 +1,7 @@
 using Serilog;
 using MassTransit;
 using NotificationService.Consumers;
+using NotificationService.Hubs;
 
 Console.WriteLine("--- STARTING NOTIFICATION SERVICE ---");
 
@@ -14,6 +15,22 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Configure CORS for SignalR
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .SetIsOriginAllowed((host) => true) // Allow any origin for development
+            .AllowCredentials();
+    });
+});
 
 // Add MassTransit configuration
 builder.Services.AddMassTransit(x =>
@@ -43,6 +60,8 @@ builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 // ... standard pipeline
+app.UseCors("CorsPolicy");
 app.MapHealthChecks("/health");
 app.MapControllers();
+app.MapHub<OrderHub>("/notificationHub");
 app.Run();

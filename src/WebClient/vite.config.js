@@ -19,6 +19,12 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        "/notificationHub": {
+          target: target,
+          changeOrigin: true,
+          ws: true,
+          secure: false,
+        },
       },
     },
   };

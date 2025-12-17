@@ -62,7 +62,8 @@ namespace UserService.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, "User") // Default role
             };
 
             var jwtSettings = _configuration.GetSection("JwtSettings");

@@ -39,7 +39,7 @@ var secretKey = jwtSettings["SecretKey"];
 // Ensure key is not null before proceeding
 if (!string.IsNullOrEmpty(secretKey))
 {
-    var key = Encoding.ASCII.GetBytes(secretKey);
+    var key = Encoding.UTF8.GetBytes(secretKey);
 
     builder.Services.AddAuthentication(options =>
     {

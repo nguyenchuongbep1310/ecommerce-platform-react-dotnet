@@ -31,9 +31,9 @@ export const productService = {
 };
 
 export const orderService = {
-  placeOrder: async () => {
+  placeOrder: async (payload) => {
     try {
-      const response = await api.post("/api/Orders/place");
+      const response = await api.post("/api/Orders/place", payload);
       return response.data;
     } catch (error) {
       console.error("Error placing order:", error);

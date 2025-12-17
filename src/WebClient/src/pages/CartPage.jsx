@@ -23,7 +23,7 @@ const CartPage = () => {
         try {
             // Call Order Service to place order
             // The backend automatically picks up the cart for the logged-in user
-            const response = await api.post('/api/Orders/place');
+            const response = await api.post('/api/Orders/place', { paymentMethodId: "pm_card_visa" });
             
             if (response.status === 200) {
                 setOrderStatus('success');

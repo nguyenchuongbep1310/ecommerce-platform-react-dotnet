@@ -67,32 +67,43 @@ namespace OrderService.Application.Handlers
                 }
 
                 StripeConfiguration.ApiKey = _configuration["StripeSettings:SecretKey"];
-                var paymentIntentService = new PaymentIntentService();
+                
+                // Bypass for local testing if no key is provided
+                if (StripeConfiguration.ApiKey == "sk_test_placeholder")
+                {
+                    // Mock success
+                    await Task.Delay(500); // Simulate network
+                }
+                else 
+                {
+                    var paymentIntentService = new PaymentIntentService();
+                    // ... real logic ...
                 
                 try
-                {
-                    var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
                     {
-                        Amount = (long)(total * 100),
-                        Currency = "usd",
-                        PaymentMethod = request.PaymentMethodId,
-                        Confirm = true,
-                        ReturnUrl = "https://localhost:5000/order-success",
-                        AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                        var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
                         {
-                            Enabled = true,
-                            AllowRedirects = "never"
-                        }
-                    }, cancellationToken: cancellationToken);
+                            Amount = (long)(total * 100),
+                            Currency = "usd",
+                            PaymentMethod = request.PaymentMethodId,
+                            Confirm = true,
+                            ReturnUrl = "https://localhost:5000/order-success",
+                            AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                            {
+                                Enabled = true,
+                                AllowRedirects = "never"
+                            }
+                        }, cancellationToken: cancellationToken);
 
-                    if (paymentIntent.Status != "succeeded")
-                    {
-                        throw new Exception($"Payment not successful. Status: {paymentIntent.Status}");
+                        if (paymentIntent.Status != "succeeded")
+                        {
+                            throw new Exception($"Payment not successful. Status: {paymentIntent.Status}");
+                        }
                     }
-                }
-                catch (StripeException ex)
-                {
-                    throw new Exception($"Stripe Error: {ex.Message}");
+                    catch (StripeException ex)
+                    {
+                        throw new Exception($"Stripe Error: {ex.Message}");
+                    }
                 }
 
                 await transaction.CommitAsync(cancellationToken);
