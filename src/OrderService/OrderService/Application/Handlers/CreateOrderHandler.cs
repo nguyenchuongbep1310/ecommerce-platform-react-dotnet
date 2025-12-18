@@ -30,10 +30,16 @@ namespace OrderService.Application.Handlers
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
+                var correlationId = Guid.NewGuid();
                 var total = request.Items.Sum(i => i.Quantity * i.UnitPrice);
-                var order = new Order { UserId = request.UserId, TotalAmount = total, Status = "Processing" };
+                var order = new Order 
+                { 
+                    CorrelationId = correlationId,
+                    UserId = request.UserId, 
+                    TotalAmount = total, 
+                    Status = "Pending" 
+                };
 
-                // 1. Prepare Order Items
                 foreach (var item in request.Items)
                 {
                     order.Items.Add(new OrderItem
@@ -47,86 +53,25 @@ namespace OrderService.Application.Handlers
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                // 2. Reduce Stock (Product Service Call) - ideally this should be moved to a consumer or saga, keeping it simple here for MVP migration
-                var productClient = _clientFactory.CreateClient("ProductClient");
-                foreach (var item in request.Items)
+                // Publish Event within the same transaction - MassTransit Outbox will handle this
+                await _publishEndpoint.Publish<IOrderSubmittedEvent>(new
                 {
-                     var stockResponse = await productClient.PostAsJsonAsync($"/api/products/{item.ProductId}/reduce-stock",
-                        new { Quantity = item.Quantity }, cancellationToken);
-
-                    if (!stockResponse.IsSuccessStatusCode)
+                    OrderId = correlationId,
+                    UserId = request.UserId,
+                    TotalAmount = total,
+                    Items = request.Items.Select(i => new Shared.Messages.Events.OrderItemDto
                     {
-                        throw new Exception($"Stock update failed for Product ID: {item.ProductId}.");
-                    }
-                }
-
-                // 3. Process Payment (Stripe)
-                if (string.IsNullOrEmpty(request.PaymentMethodId))
-                {
-                    throw new Exception("Payment Method ID is required for processing.");
-                }
-
-                StripeConfiguration.ApiKey = _configuration["StripeSettings:SecretKey"];
-                
-                // Bypass for local testing if no key is provided
-                if (StripeConfiguration.ApiKey == "sk_test_placeholder")
-                {
-                    // Mock success
-                    await Task.Delay(500); // Simulate network
-                }
-                else 
-                {
-                    var paymentIntentService = new PaymentIntentService();
-                    // ... real logic ...
-                
-                try
-                    {
-                        var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
-                        {
-                            Amount = (long)(total * 100),
-                            Currency = "usd",
-                            PaymentMethod = request.PaymentMethodId,
-                            Confirm = true,
-                            ReturnUrl = "https://localhost:5000/order-success",
-                            AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
-                            {
-                                Enabled = true,
-                                AllowRedirects = "never"
-                            }
-                        }, cancellationToken: cancellationToken);
-
-                        if (paymentIntent.Status != "succeeded")
-                        {
-                            throw new Exception($"Payment not successful. Status: {paymentIntent.Status}");
-                        }
-                    }
-                    catch (StripeException ex)
-                    {
-                        throw new Exception($"Stripe Error: {ex.Message}");
-                    }
-                }
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice
+                    }).ToList()
+                }, cancellationToken);
 
                 await transaction.CommitAsync(cancellationToken);
 
-                // 4. Publish Event
-                var orderPlacedEvent = new OrderPlacedEvent
-                {
-                    OrderId = order.Id,
-                    UserId = order.UserId,
-                    OrderDate = order.OrderDate,
-                    TotalAmount = order.TotalAmount,
-                    Items = order.Items.Select(oi => new OrderItemEvent
-                    {
-                        ProductId = oi.ProductId,
-                        Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice
-                    }).ToList()
-                };
-                await _publishEndpoint.Publish(orderPlacedEvent, cancellationToken);
-
                 return order;
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
                 throw;

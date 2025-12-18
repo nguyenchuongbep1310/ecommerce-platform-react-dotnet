@@ -13,7 +13,14 @@
       "UpstreamPathTemplate": "/api/Auth/{everything}",
       "UpstreamHttpMethod": [
         "Post"
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "10s",
+        "PeriodTimespan": 5,
+        "Limit": 5
+      }
     },
     {
       "DownstreamPathTemplate": "/api/Auth/profile",

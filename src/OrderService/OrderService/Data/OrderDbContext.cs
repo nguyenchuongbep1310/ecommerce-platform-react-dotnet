@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrderService.Models;
 using MassTransit;
+using OrderService.Sagas;
 
 namespace OrderService.Data
 {
@@ -19,6 +20,9 @@ namespace OrderService.Data
             modelBuilder.AddInboxStateEntity();
             modelBuilder.AddOutboxMessageEntity();
             modelBuilder.AddOutboxStateEntity();
+            
+            // Saga state
+            modelBuilder.Entity<OrderState>().HasKey(x => x.CorrelationId);
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.Items)
                 .WithOne(oi => oi.Order)

@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using Consul;
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogService.Data;
+using MassTransit;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -56,6 +57,22 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisConnection ?? "localhost:6379";
     options.InstanceName = "ProductCatalog_";
+});
+
+// 3. MassTransit Setup
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ProductCatalogService.Consumers.ReserveStockConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
 });
 
 var app = builder.Build();

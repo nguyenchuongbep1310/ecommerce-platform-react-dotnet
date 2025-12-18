@@ -1,3 +1,5 @@
+using MassTransit;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -5,6 +7,21 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<PaymentService.Consumers.ProcessPaymentConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 

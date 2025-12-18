@@ -51,9 +51,46 @@ namespace UserService.Controllers
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var token = GenerateJwtToken(user);
-                return Ok(new { Token = token, user.Email, user.Id });
+                var refreshToken = GenerateRefreshToken();
+                
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+                await _userManager.UpdateAsync(user);
+
+                return Ok(new 
+                { 
+                    Token = token, 
+                    RefreshToken = refreshToken,
+                    user.Email, 
+                    user.Id 
+                });
             }
             return Unauthorized(new { Message = "Invalid credentials" });
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto model)
+        {
+            var principal = GetPrincipalFromExpiredToken(model.AccessToken);
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null || user.RefreshToken != model.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return BadRequest("Invalid client request");
+            }
+
+            var newAccessToken = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new
+            {
+                Token = newAccessToken,
+                RefreshToken = newRefreshToken
+            });
         }
 
         private string GenerateJwtToken(ApplicationUser user)
@@ -63,7 +100,7 @@ namespace UserService.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, "User") // Default role
+                new Claim(ClaimTypes.Role, "User")
             };
 
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -74,40 +111,57 @@ namespace UserService.Controllers
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(double.Parse(jwtSettings["TokenLifetimeMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["TokenLifetimeMinutes"])),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"])),
+                ValidateLifetime = false
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+            if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+
+            return principal;
         }
 
         [HttpGet("profile")]
         [Authorize]
         public async Task<IActionResult> GetUserProfile()
         {
-            // 1. Get the User ID from the JWT token claims
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("User ID not found in token.");
-            }
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId); 
+            if (user == null) return NotFound();
 
-            // 2. Look up the user by the ID
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId); 
-
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
-
-            // 3. Return a simplified profile view
-            return Ok(new
-            {
-                user.Id,
-                user.Email,
-                user.UserName
-            });
+            return Ok(new { user.Id, user.Email, user.UserName });
         }
+    }
+
+    public class RefreshRequestDto
+    {
+        public string AccessToken { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
     }
 }

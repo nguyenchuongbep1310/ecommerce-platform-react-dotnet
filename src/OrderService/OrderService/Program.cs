@@ -8,6 +8,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OrderService.Sagas;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,10 +102,20 @@ builder.Services.AddMassTransit(x =>
     // Configure the Transactional Outbox
     x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
     {
-        o.QueryDelay = TimeSpan.FromSeconds(1); // How often to check for new messages
+        o.QueryDelay = TimeSpan.FromSeconds(1);
         o.UsePostgres();
-        o.UseBusOutbox(); // Messages sent via IPublishEndpoint are captured by the outbox
+        o.UseBusOutbox();
     });
+
+    // Register Saga
+    x.AddSagaStateMachine<OrderStateMachine, OrderState>()
+        .EntityFrameworkRepository(r =>
+        {
+            r.ExistingDbContext<OrderDbContext>();
+            r.UsePostgres();
+        });
+        
+    x.AddConsumer<OrderService.Consumers.OrderCommandConsumers>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
