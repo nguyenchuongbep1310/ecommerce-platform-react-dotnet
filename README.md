@@ -19,7 +19,7 @@ The system is composed of **7 Core Microservices** and **5 Infrastructure Servic
 
 | Component                 | Responsibility                               | Technology                                | Port   |
 | :------------------------ | :------------------------------------------- | :---------------------------------------- | :----- |
-| **API Gateway**           | External Entry Point, Routing, Auth          | Ocelot (**.NET 10**)                      | `80`   |
+| **API Gateway**           | External Entry Point, Routing, Auth          | Ocelot (**.NET 10**)                      | `8080` |
 | **User Service**          | User Identity, Authentication (JWT)          | **.NET 10**, PostgreSQL, ASP.NET Identity | `5001` |
 | **Product Service**       | Product Catalog, Inventory                   | **.NET 10**, PostgreSQL                   | `5002` |
 | **Shopping Cart Service** | Cart State Management                        | **.NET 10**, PostgreSQL                   | `5003` |
@@ -81,6 +81,21 @@ The system uses a mix of synchronous HTTP calls (via **Consul** lookup) and asyn
     ```bash
     docker ps
     ```
+
+### 🌉 4. Exposing to Vercel (ngrok Tunnel)
+
+To connect the local backend to the Vercel frontend, use **ngrok** to provide a permanent public URL:
+
+1.  **Install ngrok:**
+    ```bash
+    brew install ngrok
+    ```
+2.  **Start the tunnel:**
+    ```bash
+    ngrok http 8080
+    ```
+3.  **Update CORS:** Ensure the generated ngrok URL is added to the `CorsPolicy` in `ApiGateway/Program.cs`.
+4.  **Vercel Config:** Set `VITE_API_BASE_URL` in your Vercel Project Settings to your new ngrok URL.
 
 ---
 

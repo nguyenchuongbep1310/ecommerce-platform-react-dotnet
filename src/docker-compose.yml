@@ -127,6 +127,7 @@ services:
       JwtSettings__SecretKey: "${JWT_SECRET}"
       JwtSettings__Issuer: "${JWT_ISSUER}"
       JwtSettings__Audience: "${JWT_AUDIENCE}"
+      StripeSettings__SecretKey: "${STRIPE_SECRET_KEY}"
     ports:
       - "5004:8080"
     depends_on:
