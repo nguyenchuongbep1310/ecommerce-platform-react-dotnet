@@ -12,8 +12,8 @@ services:
     image: ecommerce/userservice
     port: 8080
     env:
-      ConnectionStrings__DefaultConnection: "Host=postgres-user;Port=5432;Database=user_db;Username=user;Password=password"
-      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      ConnectionStrings__DefaultConnection: "Host=postgres-user;Port=5432;Database=user_db;Username=user;Password=YOUR_PASSWORD_HERE"
+      JwtSettings__SecretKey: "YOUR_SECRET_KEY_HERE"
       JwtSettings__Issuer: "ECommerceUserAuthService"
       JwtSettings__Audience: "ECommerceClients"
 
@@ -21,28 +21,28 @@ services:
     image: ecommerce/productcatalogservice
     port: 8080
     env:
-      ConnectionStrings__DefaultConnection: "Host=postgres-product;Port=5432;Database=product_db;Username=user;Password=password"
+      ConnectionStrings__DefaultConnection: "Host=postgres-product;Port=5432;Database=product_db;Username=user;Password=YOUR_PASSWORD_HERE"
       ConnectionStrings__Redis: "redis-master:6379"
-      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__SecretKey: "YOUR_SECRET_KEY_HERE"
 
   shoppingcartservice:
     image: ecommerce/shoppingcartservice
     port: 8080
     env:
-      ConnectionStrings__DefaultConnection: "Host=postgres-cart;Port=5432;Database=cart_db;Username=user;Password=password"
+      ConnectionStrings__DefaultConnection: "Host=postgres-cart;Port=5432;Database=cart_db;Username=user;Password=YOUR_PASSWORD_HERE"
       ProductCatalogServiceUrl: "http://productcatalogservice:8080"
-      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
+      JwtSettings__SecretKey: "YOUR_SECRET_KEY_HERE"
 
   orderservice:
     image: ecommerce/orderservice
     port: 8080
     env:
-      ConnectionStrings__DefaultConnection: "Host=postgres-order;Port=5432;Database=order_db;Username=user;Password=password"
+      ConnectionStrings__DefaultConnection: "Host=postgres-order;Port=5432;Database=order_db;Username=user;Password=YOUR_PASSWORD_HERE"
       CartServiceUrl: "http://shoppingcartservice:8080"
       PaymentServiceUrl: "http://paymentservice:8080"
       ProductCatalogServiceUrl: "http://productcatalogservice:8080"
-      JwtSettings__SecretKey: "3d53db0f0e02cfaf826d578bec046d8d37acf6140296dc178cfe22050abbe493"
-      StripeSettings__SecretKey: "sk_test_placeholder"
+      JwtSettings__SecretKey: "YOUR_SECRET_KEY_HERE"
+      StripeSettings__SecretKey: "YOUR_STRIPE_KEY_HERE"
 
   paymentservice:
     image: ecommerce/paymentservice
