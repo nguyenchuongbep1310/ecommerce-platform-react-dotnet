@@ -34,6 +34,14 @@ namespace OrderService.Controllers
 
             // 1. Get Cart Data (Presentation Layer Logic)
             var cartClient = _clientFactory.CreateClient("CartClient");
+            
+            // Forward the JWT token from the incoming request to the Cart Service
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                cartClient.DefaultRequestHeaders.Add("Authorization", authHeader);
+            }
+
             var cartResponse = await cartClient.GetAsync($"/api/cart/{userId}");
 
             if (!cartResponse.IsSuccessStatusCode)
