@@ -3,11 +3,16 @@ using MediatR;
 using ProductCatalogService.Application.Queries.GetProducts;
 using ProductCatalogService.Application.Queries.GetProductById;
 using ProductCatalogService.Application.Commands.ReduceStock;
+using Asp.Versioning;
 
-namespace ProductCatalogService.Controllers;
+namespace ProductCatalogService.Controllers.V1;
 
-[Route("api/[controller]")]
+/// <summary>
+/// Product Catalog API V1 - Original implementation
+/// </summary>
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,6 +27,12 @@ public class ProductsController : ControllerBase
     /// <summary>
     /// Get all products with optional filtering
     /// </summary>
+    /// <param name="search">Search term for product name or description</param>
+    /// <param name="category">Filter by category</param>
+    /// <param name="minPrice">Minimum price filter</param>
+    /// <param name="maxPrice">Maximum price filter</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of products</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProducts(
@@ -39,6 +50,9 @@ public class ProductsController : ControllerBase
     /// <summary>
     /// Get a single product by ID
     /// </summary>
+    /// <param name="id">Product ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Product details</returns>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,6 +72,9 @@ public class ProductsController : ControllerBase
     /// <summary>
     /// Get product price by ID
     /// </summary>
+    /// <param name="id">Product ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Product price</returns>
     [HttpGet("{id}/price")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -77,6 +94,10 @@ public class ProductsController : ControllerBase
     /// <summary>
     /// Reduce product stock (used by Order Service)
     /// </summary>
+    /// <param name="id">Product ID</param>
+    /// <param name="request">Stock reduction request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success status</returns>
     [HttpPost("{id}/reduce-stock")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

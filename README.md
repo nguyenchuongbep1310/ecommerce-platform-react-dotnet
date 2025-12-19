@@ -401,6 +401,75 @@ All HTTP calls implement resilience patterns:
 
 ---
 
+## 🔢 API Versioning
+
+The platform implements **API Versioning** to maintain backward compatibility while introducing new features.
+
+### Versioning Strategy
+
+**Supported Methods:**
+
+1. **URL Path** (Recommended): `/api/v1/products` or `/api/v2/products`
+2. **HTTP Header**: `X-Api-Version: 2.0`
+3. **Query String**: `/api/products?api-version=2.0`
+
+### Current Versions
+
+| Service                   | V1  | V2  | Status   |
+| ------------------------- | --- | --- | -------- |
+| **ProductCatalogService** | ✅  | ✅  | Complete |
+| **OrderService**          | ⏳  | ⏳  | Planned  |
+| **ShoppingCartService**   | ⏳  | ⏳  | Planned  |
+| **UserService**           | ⏳  | ⏳  | Planned  |
+
+### Version Differences
+
+#### ProductCatalogService V1 vs V2
+
+**V1 (Original):**
+
+```bash
+GET /api/v1/products
+# Returns simple array of products
+```
+
+**V2 (Enhanced):**
+
+```bash
+GET /api/v2/products?page=1&pageSize=20&sortBy=price&sortOrder=asc
+# Returns paginated response with metadata
+{
+  "data": [...],
+  "pagination": { "currentPage": 1, "totalPages": 5, ... },
+  "meta": { "version": "2.0", "timestamp": "..." }
+}
+```
+
+**V2 New Features:**
+
+- ✅ Pagination (page, pageSize)
+- ✅ Sorting (sortBy, sortOrder)
+- ✅ Enhanced metadata (timestamps, request IDs)
+- ✅ Currency conversion (USD, EUR, GBP)
+- ✅ Stock status indicators
+- ✅ Category listing endpoint
+
+### Migration Guide
+
+**For existing clients:**
+
+- No changes required - V1 remains available
+- Clients not specifying version automatically use V1
+
+**For new integrations:**
+
+- Use V2 for enhanced features
+- Update response parsing to handle new structure
+
+**Documentation:** See [API Versioning Guide](docs/API-VERSIONING.md) for complete details.
+
+---
+
 ## 📚 API Documentation
 
 ### Authentication Endpoints

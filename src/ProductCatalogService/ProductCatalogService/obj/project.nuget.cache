@@ -1,9 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "NMNRfd4ZwvI=",
+  "dgSpecHash": "MXGmiwuNw/o=",
   "success": true,
   "projectFilePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ProductCatalogService/ProductCatalogService/ProductCatalogService.csproj",
   "expectedPackageFiles": [
+    "/Users/chuongnguyen/.nuget/packages/asp.versioning.abstractions/8.1.0/asp.versioning.abstractions.8.1.0.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/asp.versioning.http/8.1.0/asp.versioning.http.8.1.0.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/asp.versioning.mvc/8.1.0/asp.versioning.mvc.8.1.0.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/asp.versioning.mvc.apiexplorer/8.1.0/asp.versioning.mvc.apiexplorer.8.1.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/consul/1.7.14.9/consul.1.7.14.9.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/fluentvalidation/11.9.0/fluentvalidation.11.9.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/fluentvalidation.dependencyinjectionextensions/11.9.0/fluentvalidation.dependencyinjectionextensions.11.9.0.nupkg.sha512",

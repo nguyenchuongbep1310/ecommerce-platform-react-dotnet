@@ -20,8 +20,44 @@ builder.Services.AddDbContext<ProductDbContext>(options => options.UseNpgsql(con
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// --- API VERSIONING ---
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = Asp.Versioning.ApiVersionReader.Combine(
+        new Asp.Versioning.UrlSegmentApiVersionReader(),
+        new Asp.Versioning.HeaderApiVersionReader("X-Api-Version"),
+        new Asp.Versioning.QueryStringApiVersionReader("api-version")
+    );
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configure Swagger with API versioning
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() 
+    {
+        Title = "Product Catalog API",
+        Version = "v1",
+        Description = "Product Catalog Service API - Version 1.0"
+    });
+    
+    options.SwaggerDoc("v2", new() 
+    {
+        Title = "Product Catalog API",
+        Version = "v2",
+        Description = "Product Catalog Service API - Version 2.0 (Enhanced with pagination, sorting, and metadata)"
+    });
+});
 
 // --- CQRS with MediatR ---
 builder.Services.AddMediatR(cfg =>
@@ -134,7 +170,12 @@ lifetime.ApplicationStopped.Register(() =>
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Product Catalog API V1");
+        options.SwaggerEndpoint("/swagger/v2/swagger.json", "Product Catalog API V2");
+        options.DisplayRequestDuration();
+    });
 }
 
 app.UseAuthorization();
