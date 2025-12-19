@@ -7,6 +7,9 @@ using MassTransit;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using MediatR;
+using FluentValidation;
+using ProductCatalogService.Application.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 var registrationId = $"{builder.Environment.ApplicationName}-{builder.Environment.EnvironmentName}";
@@ -19,6 +22,21 @@ builder.Services.AddDbContext<ProductDbContext>(options => options.UseNpgsql(con
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// --- CQRS with MediatR ---
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+});
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+// Pipeline Behaviors (order matters - they execute in registration order)
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
+
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ProductDbContext>(); // Add Health Checks
 
