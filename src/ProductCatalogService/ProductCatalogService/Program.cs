@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Consul;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ProductCatalogService.Data;
 using MassTransit;
 using OpenTelemetry.Logs;
@@ -73,8 +74,40 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavi
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
 
+
+// --- HEALTH CHECKS ---
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<ProductDbContext>(); // Add Health Checks
+    // Database health check
+    .AddCheck<ProductCatalogService.Infrastructure.HealthChecks.DatabaseHealthCheck>(
+        "database",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+        tags: new[] { "db", "sql", "postgresql" })
+    
+    // Redis health check
+    .AddCheck<ProductCatalogService.Infrastructure.HealthChecks.RedisCacheHealthCheck>(
+        "redis_cache",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+        tags: new[] { "cache", "redis" })
+    
+    // RabbitMQ health check
+    .AddRabbitMQ(
+        rabbitConnectionString: "amqp://guest:guest@rabbitmq:5672",
+        name: "rabbitmq",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+        tags: new[] { "messaging", "rabbitmq" })
+    
+    // Self health check (memory, CPU)
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Service is running"), 
+        tags: new[] { "self" });
+
+// Health Checks UI
+builder.Services.AddHealthChecksUI(options =>
+{
+    options.SetEvaluationTimeInSeconds(30); // Check every 30 seconds
+    options.MaximumHistoryEntriesPerEndpoint(50);
+    options.AddHealthCheckEndpoint("ProductCatalogService", "/health");
+})
+.AddInMemoryStorage();
 
 // --- OBSERVABILITY (OpenTelemetry) ---
 const string serviceName = "ProductCatalogService";
@@ -112,6 +145,20 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = redisConnection ?? "localhost:6379";
     options.InstanceName = "ProductCatalog_";
 });
+
+// Add Redis ConnectionMultiplexer for advanced operations
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+{
+    var configuration = StackExchange.Redis.ConfigurationOptions.Parse(redisConnection ?? "localhost:6379");
+    configuration.AbortOnConnectFail = false;
+    configuration.ConnectTimeout = 5000;
+    configuration.SyncTimeout = 5000;
+    return StackExchange.Redis.ConnectionMultiplexer.Connect(configuration);
+});
+
+// Register custom cache service
+builder.Services.AddScoped<ProductCatalogService.Application.Common.Interfaces.ICacheService, 
+    ProductCatalogService.Infrastructure.Caching.RedisCacheService>();
 
 // 3. MassTransit Setup
 builder.Services.AddMassTransit(x =>
@@ -180,7 +227,40 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health"); // Expose Health Check Endpoint
+
+// --- HEALTH CHECK ENDPOINTS ---
+// Detailed health check with JSON response
+app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse,
+    ResultStatusCodes =
+    {
+        [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    }
+});
+
+// Readiness probe (for Kubernetes)
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("db") || check.Tags.Contains("cache"),
+    ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+// Liveness probe (for Kubernetes)
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("self"),
+    ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+// Health Checks UI Dashboard
+app.MapHealthChecksUI(options =>
+{
+    options.UIPath = "/health-ui";
+    options.ApiPath = "/health-ui-api";
+});
 
 // Apply Migrations on Startup and Seed Data
 using (var scope = app.Services.CreateScope())

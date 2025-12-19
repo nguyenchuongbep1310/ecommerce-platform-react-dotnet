@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using ProductCatalogService.Application.Queries.GetProducts;
 using ProductCatalogService.Application.Queries.GetProductById;
+using ProductCatalogService.Application.Queries.GetCategories;
 using ProductCatalogService.Application.Commands.ReduceStock;
 using ProductCatalogService.Application.DTOs;
 using Asp.Versioning;
@@ -277,27 +278,16 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// Get product categories (V2 only)
+    /// Get product categories with statistics (V2 only)
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of available categories</returns>
+    /// <returns>List of available categories with statistics</returns>
     [HttpGet("categories")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
     {
-        var query = new GetProductsQuery(null, null, null, null);
-        var products = await _mediator.Send(query, cancellationToken);
-
-        var categories = products
-            .Select(p => p.Category)
-            .Distinct()
-            .OrderBy(c => c)
-            .Select(c => new
-            {
-                Name = c,
-                ProductCount = products.Count(p => p.Category == c)
-            })
-            .ToList();
+        var query = new GetCategoriesQuery();
+        var categories = await _mediator.Send(query, cancellationToken);
 
         return Ok(new
         {

@@ -1,4 +1,6 @@
 using MediatR;
+using ProductCatalogService.Application.Common.Constants;
+using ProductCatalogService.Application.Common.Interfaces;
 using ProductCatalogService.Data;
 
 namespace ProductCatalogService.Application.Commands.ReduceStock;
@@ -6,13 +8,16 @@ namespace ProductCatalogService.Application.Commands.ReduceStock;
 public class ReduceStockCommandHandler : IRequestHandler<ReduceStockCommand, bool>
 {
     private readonly ProductDbContext _context;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<ReduceStockCommandHandler> _logger;
 
     public ReduceStockCommandHandler(
         ProductDbContext context,
+        ICacheService cacheService,
         ILogger<ReduceStockCommandHandler> logger)
     {
         _context = context;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
@@ -57,6 +62,28 @@ public class ReduceStockCommandHandler : IRequestHandler<ReduceStockCommand, boo
             request.ProductId,
             product.StockQuantity);
 
+        // Invalidate cache for this product and related caches
+        await InvalidateCacheAsync(request.ProductId, cancellationToken);
+
         return true;
+    }
+
+    private async Task InvalidateCacheAsync(int productId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Invalidate specific product cache
+            await _cacheService.RemoveAsync(CacheKeys.Product(productId), cancellationToken);
+            
+            // Invalidate product lists (all variations with filters)
+            await _cacheService.RemoveByPrefixAsync(CacheKeys.ProductsPrefix, cancellationToken);
+            
+            _logger.LogInformation("Invalidated cache for Product ID: {ProductId}", productId);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the operation if cache invalidation fails
+            _logger.LogError(ex, "Error invalidating cache for Product ID: {ProductId}", productId);
+        }
     }
 }
