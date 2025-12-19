@@ -727,11 +727,18 @@ Content-Type: application/json
 {
   "email": "user@example.com",
   "password": "Password123!",
-  "fullName": "John Doe"
+  "confirmPassword": "Password123!",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+Response:
+{
+  "message": "User created successfully!"
 }
 ```
 
-#### Login
+#### Login (Get Access & Refresh Tokens)
 
 ```http
 POST /api/auth/login
@@ -744,9 +751,86 @@ Content-Type: application/json
 
 Response:
 {
-  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "CfDJ8N5...",
+  "email": "user@example.com",
+  "userId": "123",
+  "expiresAt": "2025-12-19T16:30:00Z",
+  "tokenType": "Bearer"
+}
+```
+
+#### Refresh Access Token
+
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",  // Expired or about to expire
+  "refreshToken": "CfDJ8N5..."
+}
+
+Response:
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",  // New access token
+  "refreshToken": "CfDJ8N5...",              // New refresh token
+  "email": "user@example.com",
+  "userId": "123",
+  "expiresAt": "2025-12-19T16:45:00Z",
+  "tokenType": "Bearer"
+}
+```
+
+#### Validate Token
+
+```http
+POST /api/auth/validate
+Content-Type: application/json
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs..."
+}
+
+Response:
+{
+  "valid": true,
+  "expiresAt": "2025-12-19T16:30:00Z",
   "userId": "123",
   "email": "user@example.com"
+}
+```
+
+#### Revoke Refresh Token (Logout)
+
+```http
+POST /api/auth/revoke
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "message": "Refresh token revoked successfully"
+}
+```
+
+#### Get User Profile
+
+```http
+GET /api/auth/profile
+Authorization: Bearer {accessToken}
+
+Response:
+{
+  "id": "123",
+  "email": "user@example.com",
+  "userName": "user@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "address": "123 Main St",
+  "city": "New York",
+  "state": "NY",
+  "country": "USA",
+  "zipCode": "10001"
 }
 ```
 
