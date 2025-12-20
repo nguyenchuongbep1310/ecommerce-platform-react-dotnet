@@ -1,5 +1,7 @@
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Elastic.Clients.Elasticsearch.Mapping;
 using ProductCatalogService.Models;
 
 namespace ProductCatalogService.Services;
@@ -34,35 +36,13 @@ public class ElasticsearchService : IElasticsearchService
                 .Mappings(m => m
                     .Properties<ProductDocument>(p => p
                         .IntegerNumber(n => n.Id)
-                        .Text(t => t.Name, td => td
-                            .Fields(f => f
-                                .Keyword(k => k.Name.Suffix("keyword"))
-                            )
-                        )
-                        .Text(t => t.Description)
-                        .ScaledFloat(sf => sf.Price, sfd => sfd.ScalingFactor(100))
+                        .Text(t => t.Name!)
+                        .Text(t => t.Description!)
+                        .DoubleNumber(n => n.Price)
                         .IntegerNumber(n => n.StockQuantity)
-                        .Keyword(k => k.Category)
+                        .Keyword(k => k.Category!)
                         .Boolean(b => b.InStock)
                         .Date(d => d.IndexedAt)
-                    )
-                )
-                .Settings(s => s
-                    .NumberOfShards(1)
-                    .NumberOfReplicas(0)
-                    .Analysis(a => a
-                        .Analyzers(an => an
-                            .Custom("autocomplete", ca => ca
-                                .Tokenizer("standard")
-                                .Filter(new[] { "lowercase", "edge_ngram_filter" })
-                            )
-                        )
-                        .TokenFilters(tf => tf
-                            .EdgeNGram("edge_ngram_filter", en => en
-                                .MinGram(2)
-                                .MaxGram(20)
-                            )
-                        )
                     )
                 ), cancellationToken);
 
@@ -87,7 +67,7 @@ public class ElasticsearchService : IElasticsearchService
         try
         {
             var document = ProductDocument.FromProduct(product);
-            var response = await _client.IndexAsync(document, IndexName, cancellationToken);
+            var response = await _client.IndexAsync(document, idx => idx.Index(IndexName), cancellationToken);
 
             if (!response.IsValidResponse)
             {
@@ -165,13 +145,13 @@ public class ElasticsearchService : IElasticsearchService
             // Category filter
             if (!string.IsNullOrWhiteSpace(category))
             {
-                mustQueries.Add(new TermQuery("category") { Value = category });
+                mustQueries.Add(new TermQuery("category"!) { Value = category });
             }
 
             // Price range filter
             if (minPrice.HasValue || maxPrice.HasValue)
             {
-                var rangeQuery = new NumberRangeQuery("price");
+                var rangeQuery = new NumberRangeQuery("price"!);
                 if (minPrice.HasValue) rangeQuery.Gte = (double)minPrice.Value;
                 if (maxPrice.HasValue) rangeQuery.Lte = (double)maxPrice.Value;
                 mustQueries.Add(rangeQuery);
@@ -180,7 +160,7 @@ public class ElasticsearchService : IElasticsearchService
             // In stock filter
             if (inStockOnly == true)
             {
-                mustQueries.Add(new TermQuery("inStock") { Value = true });
+                mustQueries.Add(new TermQuery("inStock"!) { Value = true });
             }
 
             var searchRequest = new SearchRequest(IndexName)
@@ -193,7 +173,7 @@ public class ElasticsearchService : IElasticsearchService
                 Sort = new List<SortOptions>
                 {
                     SortOptions.Score(new ScoreSort { Order = SortOrder.Desc }),
-                    SortOptions.Field("name.keyword", new FieldSort { Order = SortOrder.Asc })
+                    SortOptions.Field("name.keyword"!, new FieldSort { Order = SortOrder.Asc })
                 }
             };
 
@@ -231,9 +211,8 @@ public class ElasticsearchService : IElasticsearchService
 
             var searchRequest = new SearchRequest(IndexName)
             {
-                Query = new PrefixQuery("name.keyword") { Value = prefix },
-                Size = limit,
-                Source = new SourceConfig(new SourceFilter { Includes = new[] { "name" } })
+                Query = new PrefixQuery("name.keyword"!) { Value = prefix! },
+                Size = limit
             };
 
             var response = await _client.SearchAsync<ProductDocument>(searchRequest, cancellationToken);
@@ -257,7 +236,7 @@ public class ElasticsearchService : IElasticsearchService
     {
         try
         {
-            var response = await _client.DeleteAsync(IndexName, productId.ToString(), cancellationToken);
+            var response = await _client.DeleteAsync<ProductDocument>(IndexName, productId.ToString(), cancellationToken);
 
             if (!response.IsValidResponse)
             {
@@ -290,8 +269,9 @@ public class ElasticsearchService : IElasticsearchService
                 Size = 0, // We only want aggregations
                 Aggregations = new Dictionary<string, Aggregation>
                 {
-                    ["categories"] = new TermsAggregation("category")
+                    ["categories"] = new TermsAggregation
                     {
+                        Field = "category",
                         Size = 100
                     }
                 }
@@ -313,7 +293,7 @@ public class ElasticsearchService : IElasticsearchService
 
             return categoriesAgg.Buckets.ToDictionary(
                 b => b.Key.ToString() ?? "Unknown",
-                b => b.DocCount ?? 0
+                b => b.DocCount
             );
         }
         catch (Exception ex)
