@@ -54,7 +54,8 @@ A **full-stack distributed e-commerce platform** demonstrating enterprise-grade 
 - [🧪 Testing](#-testing)
 - [🚀 Deployment](#-deployment)
 - [📊 Monitoring & Observability](#-monitoring--observability)
-- [🔧 Troubleshooting](#-troubleshooting)
+- [� Security](#-security)
+- [�🔧 Troubleshooting](#-troubleshooting)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -289,91 +290,538 @@ The system implements multiple communication patterns for different scenarios:
 
 Before you begin, ensure you have the following installed:
 
-| Tool               | Version                  | Download Link                                                 |
-| ------------------ | ------------------------ | ------------------------------------------------------------- |
-| **Docker Desktop** | Latest (with Compose V2) | [Download](https://www.docker.com/products/docker-desktop)    |
-| **.NET SDK**       | 10.0+                    | [Download](https://dotnet.microsoft.com/download/dotnet/10.0) |
-| **Node.js**        | 18+                      | [Download](https://nodejs.org/)                               |
-| **Git**            | Latest                   | [Download](https://git-scm.com/)                              |
+| Tool               | Version Required         | Download Link                                                 | Verify Installation                          |
+| ------------------ | ------------------------ | ------------------------------------------------------------- | -------------------------------------------- |
+| **Docker Desktop** | Latest (with Compose V2) | [Download](https://www.docker.com/products/docker-desktop)    | `docker --version && docker compose version` |
+| **.NET SDK**       | 10.0+                    | [Download](https://dotnet.microsoft.com/download/dotnet/10.0) | `dotnet --version`                           |
+| **Node.js**        | 18+                      | [Download](https://nodejs.org/)                               | `node --version && npm --version`            |
+| **Git**            | Latest                   | [Download](https://git-scm.com/)                              | `git --version`                              |
 
-### 🚀 Quick Start (5 Minutes)
+#### Verify Your Environment
+
+Run these commands to ensure all prerequisites are correctly installed:
+
+```bash
+# Check Docker (should show version 20.10+ and Compose V2)
+docker --version
+docker compose version
+
+# Check .NET SDK (should show 10.0 or higher)
+dotnet --version
+
+# Check Node.js (should show 18.0 or higher)
+node --version
+npm --version
+
+# Check Git
+git --version
+
+# Verify Docker is running
+docker ps
+```
+
+### 🚀 Quick Start (Docker Compose)
 
 Get the entire platform running with just a few commands:
 
+#### Step 1: Clone the Repository
+
 ```bash
-# 1. Clone the repository
 git clone https://github.com/yourusername/ecommerce-platform.git
-cd ecommerce-platform/src
-
-# 2. Start all services with Docker Compose
-docker compose up --build -d
-
-# 3. Wait for services to be healthy (30-60 seconds)
-docker compose ps
-
-# 4. Open the application
-open http://localhost:80
+cd ecommerce-platform
 ```
 
-> ⏱️ **First run takes 5-10 minutes** as Docker builds images and initializes databases.
+#### Step 2: Set Up Environment Variables
+
+Create a `.env` file in the `src` directory with the required environment variables:
+
+```bash
+cd src
+
+# Option 1: Copy from example file (if available)
+cp .env.example .env
+
+# Option 2: Create manually
+cat > .env << 'EOF'
+# Database Configuration
+POSTGRES_USER=your_db_username
+POSTGRES_PASSWORD=your_secure_db_password
+
+# JWT Configuration (REQUIRED - Generate a secure random string)
+JWT_SECRET=CHANGE_ME_TO_A_SECURE_RANDOM_STRING_MIN_32_CHARACTERS
+JWT_ISSUER=EcommerceAPI
+JWT_AUDIENCE=EcommerceClient
+JWT_TOKEN_LIFETIME=15
+
+# Stripe Configuration (Optional - only needed for payment processing)
+# Get your key from: https://dashboard.stripe.com/test/apikeys
+STRIPE_SECRET_KEY=sk_test_YOUR_STRIPE_TEST_KEY_HERE
+EOF
+```
+
+> ⚠️ **Security Important**:
+>
+> - **Never commit the `.env` file** to version control (it's already in `.gitignore`)
+> - **Generate a strong `JWT_SECRET`**: Use a random string generator or run: `openssl rand -base64 32`
+> - **Use test keys** for Stripe in development, production keys only in production
+> - **Change default database credentials** in production environments
+
+#### Step 3: Start All Services
+
+```bash
+# Build and start all services in detached mode
+docker compose up --build -d
+```
+
+> ⏱️ **First run takes 5-10 minutes** as Docker:
+>
+> - Downloads base images (PostgreSQL, Redis, RabbitMQ, etc.)
+> - Builds .NET microservices
+> - Builds React frontend
+> - Initializes databases with migrations
+
+#### Step 4: Monitor Startup Progress
+
+```bash
+# Watch all container logs
+docker compose logs -f
+
+# Or watch specific services
+docker compose logs -f apigateway productcatalogservice userservice
+
+# Check container status (all should show "Up" and "healthy")
+docker compose ps
+```
+
+Wait until you see messages like:
+
+- `✅ Database migration completed`
+- `✅ Application started`
+- `✅ Now listening on: http://[::]:8080`
+
+#### Step 5: Verify Services are Running
+
+```bash
+# Check all containers are running and healthy
+docker compose ps
+
+# Expected output: All services should show "Up" status
+# NAME                    STATUS
+# apigateway              Up (healthy)
+# productcatalogservice   Up (healthy)
+# userservice             Up (healthy)
+# ...
+
+# Test health endpoints
+curl http://localhost:8080/health
+curl http://localhost:5002/health
+curl http://localhost:5001/health
+
+# Check if API Gateway is responding
+curl http://localhost:8080/api/products/products
+```
+
+#### Step 6: Access the Application
+
+Open your browser and navigate to:
+
+**🎨 Frontend Application**: http://localhost:80
+
+You should see the e-commerce platform homepage!
 
 ### 🌐 Access Points
 
 Once all services are running, access them at:
 
-| Service                 | URL                             | Credentials |
-| ----------------------- | ------------------------------- | ----------- |
-| 🎨 **Frontend**         | http://localhost:80             | -           |
-| 🚪 **API Gateway**      | http://localhost:8080           | -           |
-| 🏥 **Health Checks UI** | http://localhost:5002/health-ui | -           |
-| 🔍 **Consul**           | http://localhost:8500           | -           |
-| 🐰 **RabbitMQ**         | http://localhost:15672          | guest/guest |
-| 📊 **Seq Logs**         | http://localhost:5341           | -           |
-| 📈 **Grafana**          | http://localhost:3000           | admin/admin |
-| 🔎 **Jaeger Tracing**   | http://localhost:16686          | -           |
-| 🎯 **Prometheus**       | http://localhost:9090           | -           |
+| Service                 | URL                             | Credentials     | Purpose                           |
+| ----------------------- | ------------------------------- | --------------- | --------------------------------- |
+| 🎨 **Frontend**         | http://localhost:80             | -               | Main web application              |
+| 🚪 **API Gateway**      | http://localhost:8080           | -               | Unified API entry point           |
+| 👤 **User Service**     | http://localhost:5001           | -               | User management & authentication  |
+| 📦 **Product Service**  | http://localhost:5002           | -               | Product catalog & inventory       |
+| 🛒 **Cart Service**     | http://localhost:5003           | -               | Shopping cart management          |
+| 📋 **Order Service**    | http://localhost:5004           | -               | Order processing                  |
+| 💳 **Payment Service**  | http://localhost:5005           | -               | Payment processing (Stripe)       |
+| 🔔 **Notification**     | http://localhost:5006           | -               | Real-time notifications (SignalR) |
+| 🏥 **Health Checks UI** | http://localhost:5002/health-ui | -               | Visual health monitoring          |
+| 🔍 **Consul**           | http://localhost:8500           | -               | Service discovery                 |
+| 🐰 **RabbitMQ**         | http://localhost:15672          | `guest`/`guest` | Message broker management         |
+| 📊 **Seq Logs**         | http://localhost:5341           | -               | Centralized logging               |
+| 📈 **Grafana**          | http://localhost:3000           | `admin`/`admin` | Metrics visualization             |
+| 🔎 **Jaeger Tracing**   | http://localhost:16686          | -               | Distributed tracing               |
+| 🎯 **Prometheus**       | http://localhost:9090           | -               | Metrics collection                |
 
 ### 🧪 Verify Installation
 
-Check if all services are healthy:
+#### Check Container Health
 
 ```bash
-# Check all containers are running
+# View all running containers
 docker compose ps
 
-# Check health endpoints
-curl http://localhost:5002/health | jq
-curl http://localhost:5001/health | jq
-curl http://localhost:5003/health | jq
+# Check specific service logs
+docker compose logs userservice
+docker compose logs productcatalogservice
+docker compose logs apigateway
 
-# View logs
-docker compose logs -f productcatalogservice
+# Follow logs in real-time
+docker compose logs -f --tail=100
+
+# Check resource usage
+docker stats
 ```
 
-### 🛠️ Development Setup
-
-- **Seq Logs:** http://localhost:5341
-- **Jaeger Tracing:** http://localhost:16686
-- **Grafana Dashboards:** http://localhost:3000 (admin/admin)
-- **Prometheus:** http://localhost:9090
-
-### Local Development (Without Docker)
-
-For development of individual services:
+#### Test API Endpoints
 
 ```bash
-# Start infrastructure only
-docker compose up -d consul rabbitmq redis seq prometheus grafana jaeger db_user db_product db_cart db_order
+# Test API Gateway health
+curl http://localhost:8080/health | jq
 
-# Run a service locally
+# Test Product Service health
+curl http://localhost:5002/health | jq
+
+# Test User Service health
+curl http://localhost:5001/health | jq
+
+# Get all products (should return product list)
+curl http://localhost:8080/api/products/products | jq
+
+# Test specific product
+curl http://localhost:8080/api/products/products/1 | jq
+```
+
+#### Test User Registration and Login
+
+```bash
+# Register a new user
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Test123!",
+    "confirmPassword": "Test123!",
+    "firstName": "Test",
+    "lastName": "User"
+  }'
+
+# Login
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Test123!"
+  }' | jq
+```
+
+### 🛠️ Local Development (Without Docker)
+
+For development of individual services without Docker:
+
+#### Step 1: Start Infrastructure Services Only
+
+```bash
+cd src
+
+# Start only infrastructure (databases, message broker, monitoring)
+docker compose up -d consul rabbitmq redis seq prometheus grafana jaeger \
+  db_user db_product db_cart db_order
+```
+
+#### Step 2: Run Backend Services Locally
+
+```bash
+# Run Product Service
 cd src/ProductCatalogService/ProductCatalogService
 dotnet run
 
-# Run frontend locally
-cd src/WebClient
-npm install
-npm run dev
+# In a new terminal, run User Service
+cd src/UserService/UserService
+dotnet run
+
+# In a new terminal, run Shopping Cart Service
+cd src/ShoppingCartService/ShoppingCartService
+dotnet run
+
+# In a new terminal, run Order Service
+cd src/OrderService/OrderService
+dotnet run
+
+# In a new terminal, run API Gateway
+cd src/ApiGateway/ApiGateway
+dotnet run
 ```
+
+#### Step 3: Run Frontend Locally
+
+```bash
+cd src/WebClient
+
+# Install dependencies (first time only)
+npm install
+
+# Start development server
+npm run dev
+
+# Frontend will be available at http://localhost:5173
+```
+
+#### Step 4: Update Environment Variables
+
+When running services locally, update connection strings in `appsettings.Development.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=product_db;Username=postgres;Password=postgres",
+    "Redis": "localhost:6379"
+  }
+}
+```
+
+### 🔧 Troubleshooting
+
+#### Common Issues and Solutions
+
+<details>
+<summary><b>🔴 Port Already in Use</b></summary>
+
+**Error**: `Bind for 0.0.0.0:8080 failed: port is already allocated`
+
+**Solution**:
+
+```bash
+# Find process using the port (macOS/Linux)
+lsof -i :8080
+
+# Kill the process
+kill -9 <PID>
+
+# Or change the port in docker-compose.yml
+# For example, change "8080:8080" to "8081:8080"
+```
+
+</details>
+
+<details>
+<summary><b>🔴 Docker Compose Build Fails</b></summary>
+
+**Error**: `failed to solve: process "/bin/sh -c dotnet restore" did not complete successfully`
+
+**Solution**:
+
+```bash
+# Clear Docker build cache
+docker builder prune -a
+
+# Remove all containers and volumes
+docker compose down -v
+
+# Rebuild from scratch
+docker compose up --build --force-recreate
+```
+
+</details>
+
+<details>
+<summary><b>🔴 Database Migration Errors</b></summary>
+
+**Error**: `Npgsql.PostgresException: database "product_db" does not exist`
+
+**Solution**:
+
+```bash
+# Stop all services
+docker compose down
+
+# Remove database volumes
+docker volume rm src_product_data src_user_data src_cart_data src_order_data
+
+# Restart services (databases will be recreated)
+docker compose up -d
+```
+
+</details>
+
+<details>
+<summary><b>🔴 Services Not Healthy</b></summary>
+
+**Error**: Container shows "unhealthy" status
+
+**Solution**:
+
+```bash
+# Check service logs
+docker compose logs <service-name>
+
+# Restart specific service
+docker compose restart <service-name>
+
+# Check health endpoint
+curl http://localhost:<port>/health
+```
+
+</details>
+
+<details>
+<summary><b>🔴 Frontend Can't Connect to Backend</b></summary>
+
+**Error**: `Network Error` or `CORS Error` in browser console
+
+**Solution**:
+
+```bash
+# Verify API Gateway is running
+curl http://localhost:8080/health
+
+# Check CORS configuration in ApiGateway/Program.cs
+# Ensure frontend URL is in allowed origins
+
+# Restart API Gateway
+docker compose restart apigateway
+```
+
+</details>
+
+<details>
+<summary><b>🔴 RabbitMQ Connection Failed</b></summary>
+
+**Error**: `RabbitMQ.Client.Exceptions.BrokerUnreachableException`
+
+**Solution**:
+
+```bash
+# Check RabbitMQ is running
+docker compose ps rabbitmq
+
+# Restart RabbitMQ
+docker compose restart rabbitmq
+
+# Check RabbitMQ logs
+docker compose logs rabbitmq
+
+# Access RabbitMQ Management UI
+open http://localhost:15672
+# Login: guest/guest
+```
+
+</details>
+
+<details>
+<summary><b>🔴 Redis Connection Failed</b></summary>
+
+**Error**: `StackExchange.Redis.RedisConnectionException`
+
+**Solution**:
+
+```bash
+# Check Redis is running
+docker compose ps redis
+
+# Test Redis connection
+docker exec -it redis redis-cli ping
+# Should return: PONG
+
+# Restart Redis
+docker compose restart redis
+```
+
+</details>
+
+### 🧹 Stopping and Cleaning Up
+
+#### Stop All Services
+
+```bash
+# Stop all services (preserves data)
+docker compose down
+
+# Stop and remove volumes (deletes all data)
+docker compose down -v
+
+# Stop and remove everything including images
+docker compose down -v --rmi all
+```
+
+#### Clean Up Docker Resources
+
+```bash
+# Remove all stopped containers
+docker container prune
+
+# Remove unused images
+docker image prune -a
+
+# Remove unused volumes
+docker volume prune
+
+# Remove unused networks
+docker network prune
+
+# Remove everything (use with caution!)
+docker system prune -a --volumes
+```
+
+#### Restart Specific Services
+
+```bash
+# Restart a single service
+docker compose restart productcatalogservice
+
+# Rebuild and restart a service
+docker compose up -d --build productcatalogservice
+
+# View logs for a specific service
+docker compose logs -f productcatalogservice
+```
+
+### 📊 Monitoring & Observability
+
+Once services are running, explore the monitoring tools:
+
+#### Seq - Centralized Logging
+
+- **URL**: http://localhost:5341
+- **Purpose**: View structured logs from all services
+- **Usage**: Search logs by service, level, or custom properties
+
+#### Jaeger - Distributed Tracing
+
+- **URL**: http://localhost:16686
+- **Purpose**: Trace requests across microservices
+- **Usage**: Search for traces by service or operation
+
+#### Grafana - Metrics Visualization
+
+- **URL**: http://localhost:3000
+- **Credentials**: `admin`/`admin`
+- **Purpose**: Visualize metrics from Prometheus
+- **Usage**: Import dashboard from `src/grafana_dashboard.json`
+
+#### Prometheus - Metrics Collection
+
+- **URL**: http://localhost:9090
+- **Purpose**: Query and explore metrics
+- **Usage**: Execute PromQL queries
+
+### 🎯 Next Steps
+
+Now that your platform is running:
+
+1. **Explore the API**: Visit http://localhost:8080 and test endpoints
+2. **Check Logs**: Open http://localhost:5341 to see structured logs
+3. **Monitor Health**: Visit http://localhost:5002/health-ui
+4. **View Traces**: Open http://localhost:16686 to see distributed traces
+5. **Test the Frontend**: Navigate to http://localhost:80
+6. **Read the Docs**: Check the [API Documentation](#-api-documentation) section
+
+### 💡 Development Tips
+
+- **Hot Reload**: Frontend supports hot reload - changes appear instantly
+- **Database Access**: Connect to PostgreSQL databases on ports 5432, 5434, 5435, 5436
+- **Message Broker**: Monitor RabbitMQ queues at http://localhost:15672
+- **Service Discovery**: View registered services at http://localhost:8500
+- **API Testing**: Use tools like Postman or curl to test endpoints
+- **Debugging**: Attach debugger to services running locally (not in Docker)
 
 ---
 
@@ -1071,6 +1519,110 @@ curl http://localhost:5002/health
 # Check all services via Consul
 open http://localhost:8500
 ```
+
+---
+
+## 🔒 Security
+
+Security is a top priority for this platform. Follow these best practices to keep your deployment secure.
+
+### 🔑 Environment Variables & Secrets
+
+**⚠️ NEVER commit sensitive information to version control!**
+
+The `.env` file is already in `.gitignore` to prevent accidental commits. Always use the `.env.example` template:
+
+```bash
+# Copy the example file
+cp src/.env.example src/.env
+
+# Edit with your actual credentials
+nano src/.env
+```
+
+### 🛡️ Generate Secure Secrets
+
+#### JWT Secret (Required)
+
+Generate a cryptographically secure random string for JWT signing:
+
+```bash
+# Using OpenSSL (recommended)
+openssl rand -base64 32
+
+# Using .NET
+dotnet user-secrets set "JwtSettings:SecretKey" "$(openssl rand -base64 32)"
+
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Then update your `.env` file:
+
+```bash
+JWT_SECRET=<your-generated-secret-here>
+```
+
+#### Database Passwords
+
+Use strong passwords with:
+
+- Minimum 16 characters
+- Mix of uppercase, lowercase, numbers, and special characters
+
+```bash
+# Generate a secure password
+openssl rand -base64 24
+```
+
+### 💳 Stripe API Keys
+
+**Development**:
+
+- Use test keys: `sk_test_YOUR_STRIPE_TEST_KEY_HERE`
+- Get from: https://dashboard.stripe.com/test/apikeys
+
+**Production**:
+
+- Use live keys: `sk_live_YOUR_STRIPE_LIVE_KEY_HERE`
+- Get from: https://dashboard.stripe.com/apikeys
+- **NEVER** use live keys in development!
+
+### 🔐 Security Checklist
+
+Before deploying to production:
+
+- [ ] All secrets in `.env` file (not committed to Git)
+- [ ] Strong JWT secret generated (32+ characters)
+- [ ] Database passwords changed from defaults
+- [ ] Stripe production keys configured (if using payments)
+- [ ] HTTPS/TLS enabled
+- [ ] CORS properly configured
+- [ ] Rate limiting enabled
+- [ ] Security headers configured
+- [ ] Dependencies updated (no known vulnerabilities)
+- [ ] Container images scanned for vulnerabilities
+
+### 📚 Detailed Security Documentation
+
+For comprehensive security guidelines, see **[SECURITY.md](SECURITY.md)** which covers:
+
+- 🔑 Secrets management best practices
+- 🛡️ JWT configuration and token security
+- 💳 Payment security (Stripe)
+- 🗄️ Database security
+- 🔐 HTTPS/TLS configuration
+- 🐳 Docker & Kubernetes security
+- 🔍 Security monitoring and logging
+- 📋 Pre-production security checklist
+
+### 🐛 Reporting Security Vulnerabilities
+
+If you discover a security vulnerability:
+
+1. **DO NOT** open a public GitHub issue
+2. Email security concerns privately
+3. We will respond within 48 hours
 
 ---
 
