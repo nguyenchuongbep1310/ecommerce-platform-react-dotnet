@@ -96,6 +96,13 @@ builder.Services.AddHealthChecks()
         failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
         tags: new[] { "messaging", "rabbitmq" })
     
+    // Elasticsearch health check
+    .AddElasticsearch(
+        elasticsearchUri: builder.Configuration.GetConnectionString("Elasticsearch") ?? "http://elasticsearch:9200",
+        name: "elasticsearch",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+        tags: new[] { "search", "elasticsearch" })
+    
     // Self health check (memory, CPU)
     .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Service is running"), 
         tags: new[] { "self" });
@@ -159,6 +166,24 @@ builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
 // Register custom cache service
 builder.Services.AddScoped<ProductCatalogService.Application.Common.Interfaces.ICacheService, 
     ProductCatalogService.Infrastructure.Caching.RedisCacheService>();
+
+// 4. Elasticsearch Setup
+var elasticsearchUrl = builder.Configuration.GetConnectionString("Elasticsearch") ?? "http://elasticsearch:9200";
+builder.Services.AddSingleton(sp =>
+{
+    var settings = new Elastic.Clients.Elasticsearch.ElasticsearchClientSettings(new Uri(elasticsearchUrl))
+        .DefaultIndex("products")
+        .EnableDebugMode()
+        .PrettyJson()
+        .RequestTimeout(TimeSpan.FromSeconds(30));
+
+    return new Elastic.Clients.Elasticsearch.ElasticsearchClient(settings);
+});
+
+// Register Elasticsearch service
+builder.Services.AddScoped<ProductCatalogService.Services.IElasticsearchService, 
+    ProductCatalogService.Services.ElasticsearchService>();
+
 
 // 3. MassTransit Setup
 builder.Services.AddMassTransit(x =>
@@ -285,6 +310,28 @@ using (var scope = app.Services.CreateScope())
             if (i == 4) throw; // Throw on last attempt
             System.Threading.Thread.Sleep(2000);
         }
+    }
+    
+    // Initialize Elasticsearch index and bulk index products
+    try
+    {
+        var elasticsearchService = services.GetRequiredService<ProductCatalogService.Services.IElasticsearchService>();
+        
+        // Initialize index with mappings
+        await elasticsearchService.InitializeIndexAsync();
+        logger.LogInformation("Elasticsearch index initialized successfully.");
+        
+        // Bulk index all existing products
+        var products = await context.Products.ToListAsync();
+        if (products.Any())
+        {
+            await elasticsearchService.BulkIndexProductsAsync(products);
+            logger.LogInformation("Bulk indexed {Count} products to Elasticsearch.", products.Count);
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to initialize Elasticsearch. Search functionality may be limited.");
     }
 }
 

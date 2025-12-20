@@ -66,6 +66,22 @@
           }
         }
       },
+      "AspNetCore.HealthChecks.Elasticsearch/8.0.1": {
+        "type": "package",
+        "dependencies": {
+          "NEST": "7.17.5"
+        },
+        "compile": {
+          "lib/net6.0/HealthChecks.Elasticsearch.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/HealthChecks.Elasticsearch.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "AspNetCore.HealthChecks.Rabbitmq/8.0.2": {
         "type": "package",
         "dependencies": {
@@ -198,6 +214,48 @@
         "runtime": {
           "lib/netstandard2.0/Consul.dll": {
             "related": ".xml"
+          }
+        }
+      },
+      "Elastic.Clients.Elasticsearch/8.15.6": {
+        "type": "package",
+        "dependencies": {
+          "Elastic.Transport": "0.4.22"
+        },
+        "compile": {
+          "lib/net8.0/Elastic.Clients.Elasticsearch.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Elastic.Clients.Elasticsearch.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Elastic.Transport/0.4.22": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Elastic.Transport.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Elastic.Transport.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "Elasticsearch.Net/7.17.5": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/Elasticsearch.Net.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/Elasticsearch.Net.dll": {
+            "related": ".pdb;.xml"
           }
         }
       },
@@ -1345,6 +1403,22 @@
           "buildTransitive/Mono.TextTemplating.targets": {}
         }
       },
+      "NEST/7.17.5": {
+        "type": "package",
+        "dependencies": {
+          "Elasticsearch.Net": "7.17.5"
+        },
+        "compile": {
+          "lib/netstandard2.0/Nest.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Nest.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -2008,6 +2082,22 @@
         "lib/net8.0/Asp.Versioning.Mvc.ApiExplorer.xml"
       ]
     },
+    "AspNetCore.HealthChecks.Elasticsearch/8.0.1": {
+      "sha512": "79LkowiUhTJ7v/7tkKUBdcJWvAMiruDnNIAs6fno9pD1MjM5os0tpUy5WXwkUijhGaX+ZOE5N/5W2MZ6wlakEw==",
+      "type": "package",
+      "path": "aspnetcore.healthchecks.elasticsearch/8.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "aspnetcore.healthchecks.elasticsearch.8.0.1.nupkg.sha512",
+        "aspnetcore.healthchecks.elasticsearch.nuspec",
+        "icon.png",
+        "lib/net6.0/HealthChecks.Elasticsearch.dll",
+        "lib/net6.0/HealthChecks.Elasticsearch.xml",
+        "lib/netstandard2.0/HealthChecks.Elasticsearch.dll",
+        "lib/netstandard2.0/HealthChecks.Elasticsearch.xml"
+      ]
+    },
     "AspNetCore.HealthChecks.Rabbitmq/8.0.2": {
       "sha512": "A/29xmNWfssOY1zq1bWAaZPW/iJfBhJN+I737KKHQutzB0JFwAIKesjsUWN2BAJwqS/ciFMjNxvCDHtAgU0PIQ==",
       "type": "package",
@@ -2129,6 +2219,80 @@
         "lib/net461/Consul.xml",
         "lib/netstandard2.0/Consul.dll",
         "lib/netstandard2.0/Consul.xml"
+      ]
+    },
+    "Elastic.Clients.Elasticsearch/8.15.6": {
+      "sha512": "7QsXvOtwtOkbdPPWozq9KkcBihswEzu/bEEPZvd0xAr5kkULd3qraHMyE+Nlq9B8JmuKjEYJcDpPnn885uPUmg==",
+      "type": "package",
+      "path": "elastic.clients.elasticsearch/8.15.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.txt",
+        "README.md",
+        "elastic.clients.elasticsearch.8.15.6.nupkg.sha512",
+        "elastic.clients.elasticsearch.nuspec",
+        "lib/net462/Elastic.Clients.Elasticsearch.dll",
+        "lib/net462/Elastic.Clients.Elasticsearch.xml",
+        "lib/net6.0/Elastic.Clients.Elasticsearch.dll",
+        "lib/net6.0/Elastic.Clients.Elasticsearch.xml",
+        "lib/net8.0/Elastic.Clients.Elasticsearch.dll",
+        "lib/net8.0/Elastic.Clients.Elasticsearch.xml",
+        "lib/netstandard2.0/Elastic.Clients.Elasticsearch.dll",
+        "lib/netstandard2.0/Elastic.Clients.Elasticsearch.xml",
+        "lib/netstandard2.1/Elastic.Clients.Elasticsearch.dll",
+        "lib/netstandard2.1/Elastic.Clients.Elasticsearch.xml",
+        "nuget-icon.png"
+      ]
+    },
+    "Elastic.Transport/0.4.22": {
+      "sha512": "9J5GPHJcT8sewn2zVfWTrsCQvfQYgUiY/jx+IRjWUk7XNPd837qfEL42I5baH69cyW/e4RoDy8v76yxqz95tDw==",
+      "type": "package",
+      "path": "elastic.transport/0.4.22",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "elastic.transport.0.4.22.nupkg.sha512",
+        "elastic.transport.nuspec",
+        "lib/net462/Elastic.Transport.dll",
+        "lib/net462/Elastic.Transport.pdb",
+        "lib/net462/Elastic.Transport.xml",
+        "lib/net6.0/Elastic.Transport.dll",
+        "lib/net6.0/Elastic.Transport.pdb",
+        "lib/net6.0/Elastic.Transport.xml",
+        "lib/net8.0/Elastic.Transport.dll",
+        "lib/net8.0/Elastic.Transport.pdb",
+        "lib/net8.0/Elastic.Transport.xml",
+        "lib/netstandard2.0/Elastic.Transport.dll",
+        "lib/netstandard2.0/Elastic.Transport.pdb",
+        "lib/netstandard2.0/Elastic.Transport.xml",
+        "lib/netstandard2.1/Elastic.Transport.dll",
+        "lib/netstandard2.1/Elastic.Transport.pdb",
+        "lib/netstandard2.1/Elastic.Transport.xml",
+        "license.txt",
+        "nuget-icon.png"
+      ]
+    },
+    "Elasticsearch.Net/7.17.5": {
+      "sha512": "orChsQi1Ceho/NyIylNOn6y4vuGcsbCfMZnCueNN0fzqYEGQmQdPfcVmsR5+3fwpXTgxCdjTUVmqOwvHpCSB+Q==",
+      "type": "package",
+      "path": "elasticsearch.net/7.17.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "elasticsearch.net.7.17.5.nupkg.sha512",
+        "elasticsearch.net.nuspec",
+        "lib/net461/Elasticsearch.Net.dll",
+        "lib/net461/Elasticsearch.Net.pdb",
+        "lib/net461/Elasticsearch.Net.xml",
+        "lib/netstandard2.0/Elasticsearch.Net.dll",
+        "lib/netstandard2.0/Elasticsearch.Net.pdb",
+        "lib/netstandard2.0/Elasticsearch.Net.xml",
+        "lib/netstandard2.1/Elasticsearch.Net.dll",
+        "lib/netstandard2.1/Elasticsearch.Net.pdb",
+        "lib/netstandard2.1/Elasticsearch.Net.xml",
+        "license.txt",
+        "nuget-icon.png"
       ]
     },
     "FluentValidation/11.9.0": {
@@ -4119,6 +4283,25 @@
         "readme.md"
       ]
     },
+    "NEST/7.17.5": {
+      "sha512": "bo9UyuIoVRx4IUQiuC8ZrlZuvAXKIccernC7UUKukQCEmRq2eVIk+gubHlnMQljrP51q0mN4cjgy9vv5uZPkoA==",
+      "type": "package",
+      "path": "nest/7.17.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net461/Nest.dll",
+        "lib/net461/Nest.pdb",
+        "lib/net461/Nest.xml",
+        "lib/netstandard2.0/Nest.dll",
+        "lib/netstandard2.0/Nest.pdb",
+        "lib/netstandard2.0/Nest.xml",
+        "license.txt",
+        "nest.7.17.5.nupkg.sha512",
+        "nest.nuspec",
+        "nuget-icon.png"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -5017,12 +5200,14 @@
     "net10.0": [
       "Asp.Versioning.Mvc >= 8.1.0",
       "Asp.Versioning.Mvc.ApiExplorer >= 8.1.0",
+      "AspNetCore.HealthChecks.Elasticsearch >= 8.0.1",
       "AspNetCore.HealthChecks.Rabbitmq >= 8.0.2",
       "AspNetCore.HealthChecks.Redis >= 8.0.1",
       "AspNetCore.HealthChecks.UI >= 8.0.2",
       "AspNetCore.HealthChecks.UI.Client >= 8.0.1",
       "AspNetCore.HealthChecks.UI.InMemory.Storage >= 8.0.1",
       "Consul >= 1.7.14.9",
+      "Elastic.Clients.Elasticsearch >= 8.15.6",
       "FluentValidation >= 11.9.0",
       "FluentValidation.DependencyInjectionExtensions >= 11.9.0",
       "MassTransit.RabbitMQ >= 8.2.5",
@@ -5097,6 +5282,10 @@
             "target": "Package",
             "version": "[8.1.0, )"
           },
+          "AspNetCore.HealthChecks.Elasticsearch": {
+            "target": "Package",
+            "version": "[8.0.1, )"
+          },
           "AspNetCore.HealthChecks.Rabbitmq": {
             "target": "Package",
             "version": "[8.0.2, )"
@@ -5120,6 +5309,10 @@
           "Consul": {
             "target": "Package",
             "version": "[1.7.14.9, )"
+          },
+          "Elastic.Clients.Elasticsearch": {
+            "target": "Package",
+            "version": "[8.15.6, )"
           },
           "FluentValidation": {
             "target": "Package",

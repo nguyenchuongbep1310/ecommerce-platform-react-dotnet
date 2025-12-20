@@ -56,6 +56,10 @@
               "target": "Package",
               "version": "[8.1.0, )"
             },
+            "AspNetCore.HealthChecks.Elasticsearch": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
             "AspNetCore.HealthChecks.Rabbitmq": {
               "target": "Package",
               "version": "[8.0.2, )"
@@ -79,6 +83,10 @@
             "Consul": {
               "target": "Package",
               "version": "[1.7.14.9, )"
+            },
+            "Elastic.Clients.Elasticsearch": {
+              "target": "Package",
+              "version": "[8.15.6, )"
             },
             "FluentValidation": {
               "target": "Package",
