@@ -41,7 +41,8 @@ public class RateLimitingMiddleware
         var clientId = GetClientIdentifier(context);
         var clientInfo = _clients.GetOrAdd(clientId, _ => new ClientRequestInfo());
 
-        lock (clientInfo)
+        await clientInfo.Semaphore.WaitAsync();
+        try
         {
             var now = DateTime.UtcNow;
             
@@ -71,6 +72,10 @@ public class RateLimitingMiddleware
             }
 
             clientInfo.RequestTimestamps.Add(now);
+        }
+        finally
+        {
+            clientInfo.Semaphore.Release();
         }
 
         // Add rate limit headers
@@ -115,4 +120,5 @@ public class RateLimitingMiddleware
 public class ClientRequestInfo
 {
     public List<DateTime> RequestTimestamps { get; set; } = new();
+    public SemaphoreSlim Semaphore { get; } = new(1, 1);
 }

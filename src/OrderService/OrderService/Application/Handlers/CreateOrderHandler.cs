@@ -71,7 +71,7 @@ namespace OrderService.Application.Handlers
 
                 return order;
             }
-            catch (Exception ex)
+            catch
             {
                 await transaction.RollbackAsync(cancellationToken);
                 throw;

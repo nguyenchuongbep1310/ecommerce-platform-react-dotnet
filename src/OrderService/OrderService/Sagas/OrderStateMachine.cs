@@ -67,15 +67,15 @@ namespace OrderService.Sagas
             );
         }
 
-        public State Submitted { get; private set; }
-        public State StockReservedState { get; private set; }
-        public State Completed { get; private set; }
-        public State Failed { get; private set; }
+        public State Submitted { get; private set; } = null!;
+        public State StockReservedState { get; private set; } = null!;
+        public State Completed { get; private set; } = null!;
+        public State Failed { get; private set; } = null!;
 
-        public Event<IOrderSubmittedEvent> OrderSubmitted { get; private set; }
-        public Event<IStockReservedEvent> StockReserved { get; private set; }
-        public Event<IStockReservationFailedEvent> StockReservationFailed { get; private set; }
-        public Event<IPaymentCompletedEvent> PaymentCompleted { get; private set; }
-        public Event<IPaymentFailedEvent> PaymentFailed { get; private set; }
+        public Event<IOrderSubmittedEvent> OrderSubmitted { get; private set; } = null!;
+        public Event<IStockReservedEvent> StockReserved { get; private set; } = null!;
+        public Event<IStockReservationFailedEvent> StockReservationFailed { get; private set; } = null!;
+        public Event<IPaymentCompletedEvent> PaymentCompleted { get; private set; } = null!;
+        public Event<IPaymentFailedEvent> PaymentFailed { get; private set; } = null!;
     }
 }

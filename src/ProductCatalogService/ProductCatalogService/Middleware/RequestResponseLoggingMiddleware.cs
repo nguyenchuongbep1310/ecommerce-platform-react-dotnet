@@ -66,7 +66,7 @@ public class RequestResponseLoggingMiddleware
         {
             request.EnableBuffering();
             var buffer = new byte[Convert.ToInt32(request.ContentLength)];
-            await request.Body.ReadAsync(buffer.AsMemory(0, buffer.Length));
+            await request.Body.ReadExactlyAsync(buffer.AsMemory(0, buffer.Length));
             var bodyAsText = Encoding.UTF8.GetString(buffer);
             requestInfo.AppendLine($"Body: {bodyAsText}");
             request.Body.Position = 0;
