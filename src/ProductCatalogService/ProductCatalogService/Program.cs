@@ -11,6 +11,10 @@ using OpenTelemetry.Trace;
 using MediatR;
 using FluentValidation;
 using ProductCatalogService.Application.Behaviors;
+using Hangfire;
+using Hangfire.PostgreSql;
+using ProductCatalogService.Infrastructure.Authorization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var registrationId = $"{builder.Environment.ApplicationName}-{builder.Environment.EnvironmentName}";
@@ -201,6 +205,35 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+// 5. Hangfire Setup for Scheduled Tasks
+builder.Services.AddHangfire(config =>
+{
+    config
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UsePostgreSqlStorage(options =>
+        {
+            options.UseNpgsqlConnection(connectionString);
+        });
+});
+
+// Add Hangfire server
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 5; // Number of concurrent jobs
+    options.ServerName = $"ProductCatalogService-{Environment.MachineName}";
+});
+
+// Register scheduled jobs class
+builder.Services.AddScoped<ProductCatalogService.ScheduledJobs.ProductCatalogJobs>();
+
+// 6. Background Services
+builder.Services.AddHostedService<ProductCatalogService.BackgroundServices.ElasticsearchSyncService>();
+builder.Services.AddHostedService<ProductCatalogService.BackgroundServices.CacheWarmingService>();
+builder.Services.AddHostedService<ProductCatalogService.BackgroundServices.InventoryMonitoringService>();
+
+
 var app = builder.Build();
 
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
@@ -251,6 +284,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+
+// --- HANGFIRE DASHBOARD ---
+// Access at: http://localhost:8080/hangfire
+app.UseHangfireDashboard("/hangfire", new Hangfire.DashboardOptions
+{
+    DashboardTitle = "Product Catalog - Background Jobs",
+    StatsPollingInterval = 2000, // 2 seconds
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
+
+// Configure recurring jobs
+ProductCatalogService.ScheduledJobs.HangfireJobScheduler.ConfigureRecurringJobs();
+
 app.MapControllers();
 
 // --- HEALTH CHECK ENDPOINTS ---
