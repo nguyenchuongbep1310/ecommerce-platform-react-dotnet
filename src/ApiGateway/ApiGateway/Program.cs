@@ -3,6 +3,7 @@ using Ocelot.Middleware;
 using Ocelot.Provider.Consul;
 using Serilog;
 using OpenTelemetry.Metrics;
+using ApiGateway.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +55,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("CorsPolicy"); // 1. Enable CORS before Ocelot
+// Middleware pipeline order is important!
+// 1. Exception handling (should be first to catch all errors)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 2. Correlation ID (early in pipeline to track requests)
+app.UseMiddleware<CorrelationIdMiddleware>();
+
+// 3. Request logging (after correlation ID)
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// 4. CORS (before Ocelot)
+app.UseCors("CorsPolicy");
 
 app.UseOpenTelemetryPrometheusScrapingEndpoint(); // Exposes the metrics at /metrics
 app.MapHealthChecks("/health");

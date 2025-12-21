@@ -1,4 +1,5 @@
 using MassTransit;
+using PaymentService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,13 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// Middleware pipeline order is important!
+// 1. Exception handling (should be first to catch all errors)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 2. Request logging
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 // app.UseHttpsRedirection(); // Disable HttpsRedirection for internal Docker comms to avoid certificate issues if not configured
 

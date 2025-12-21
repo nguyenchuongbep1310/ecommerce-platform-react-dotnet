@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection; // Ensure this is present if usi
 using Microsoft.IdentityModel.Tokens;
 using UserService.Data;
 using UserService.Models;
+using UserService.Middleware;
 using Serilog;
 
 // Configure Serilog to read configuration from appsettings.json
@@ -228,6 +229,17 @@ try
         app.UseSwaggerUI();
     }
 
+    // Middleware pipeline order is important!
+    // 1. Exception handling (should be first to catch all errors)
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+    // 2. Security headers (early in pipeline)
+    app.UseMiddleware<SecurityHeadersMiddleware>();
+
+    // 3. Request logging
+    app.UseMiddleware<RequestLoggingMiddleware>();
+
+    // 4. Rate limiting
     app.UseRateLimiter(); // Enable rate limiting middleware
     app.UseAuthentication(); // Must be before UseAuthorization
     app.UseAuthorization();

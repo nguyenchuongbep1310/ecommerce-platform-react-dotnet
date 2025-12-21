@@ -2,6 +2,7 @@ using Serilog;
 using MassTransit;
 using NotificationService.Consumers;
 using NotificationService.Hubs;
+using NotificationService.Middleware;
 
 Console.WriteLine("--- STARTING NOTIFICATION SERVICE ---");
 
@@ -58,6 +59,13 @@ builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+// Middleware pipeline order is important!
+// 1. Exception handling (should be first to catch all errors)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 2. Request logging
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 // ... standard pipeline
 app.UseCors("CorsPolicy");

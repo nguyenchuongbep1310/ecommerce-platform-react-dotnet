@@ -14,6 +14,7 @@ using ProductCatalogService.Application.Behaviors;
 using Hangfire;
 using Hangfire.PostgreSql;
 using ProductCatalogService.Infrastructure.Authorization;
+using ProductCatalogService.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -272,6 +273,11 @@ lifetime.ApplicationStopped.Register(() =>
 });
 
 // Configure the HTTP request pipeline.
+
+// --- CUSTOM MIDDLEWARE PIPELINE ---
+// Apply all custom middleware in the recommended order
+app.UseCustomMiddleware();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

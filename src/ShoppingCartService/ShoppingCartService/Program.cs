@@ -7,6 +7,7 @@ using ShoppingCartService.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ShoppingCartService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var registrationId = $"{builder.Environment.ApplicationName}-{builder.Environment.EnvironmentName}";
@@ -135,6 +136,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Middleware pipeline order is important!
+// 1. Exception handling (should be first to catch all errors)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 2. Request logging
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// 3. Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

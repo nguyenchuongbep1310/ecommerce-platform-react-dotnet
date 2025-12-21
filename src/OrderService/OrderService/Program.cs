@@ -9,6 +9,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OrderService.Sagas;
+using OrderService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,7 +132,14 @@ builder.Services.AddMassTransit(x =>
 
 var app = builder.Build();
 
-// ... standard pipeline configuration (Swagger, Authorization)
+// Middleware pipeline order is important!
+// 1. Exception handling (should be first to catch all errors)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 2. Request logging
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// 3. Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
