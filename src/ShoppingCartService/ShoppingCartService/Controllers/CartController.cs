@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ShoppingCartService.Data;
 using ShoppingCartService.DTOs;
 using ShoppingCartService.Models;
+using AutoMapper;
 
 namespace ShoppingCartService.Controllers
 {
@@ -14,11 +15,13 @@ namespace ShoppingCartService.Controllers
     {
         private readonly CartDbContext _context;
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IMapper _mapper;
 
-        public CartController(CartDbContext context, IHttpClientFactory clientFactory)
+        public CartController(CartDbContext context, IHttpClientFactory clientFactory, IMapper mapper)
         {
             _context = context;
             _clientFactory = clientFactory;
+            _mapper = mapper;
         }
 
         // Simplification: We use a static dummy User ID for MVP since we haven't integrated auth yet.
@@ -42,19 +45,8 @@ namespace ShoppingCartService.Controllers
                 });
             }
 
-            // Simple mapping to DTO
-            var cartDto = new CartResponseDto
-            {
-                UserId = cart.UserId,
-                Items = cart
-                    .Items.Select(item => new CartItemDto
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        PriceAtAddition = item.PriceAtAddition,
-                    })
-                    .ToList(),
-            };
+            // Use AutoMapper to map Cart entity to CartResponseDto
+            var cartDto = _mapper.Map<CartResponseDto>(cart);
 
             // NOTE: In a real scenario, you'd call ProductCatalogService again here to get the current names/images.
 

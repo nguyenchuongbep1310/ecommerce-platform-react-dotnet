@@ -71,6 +71,9 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
 });
 
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 // FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 

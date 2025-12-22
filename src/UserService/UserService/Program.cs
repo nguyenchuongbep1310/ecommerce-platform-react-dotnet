@@ -72,6 +72,9 @@ try
     builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>(); // Add Health Checks
 
+    // Add AutoMapper
+    builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
     // --- RATE LIMITING ---
     builder.Services.AddRateLimiter(rateLimiterOptions =>
     {

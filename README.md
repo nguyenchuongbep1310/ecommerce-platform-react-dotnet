@@ -255,6 +255,7 @@ The system implements multiple communication patterns for different scenarios:
 - **Entity Framework Core 10** - ORM
 - **MediatR** - CQRS implementation
 - **FluentValidation** - Input validation
+- **AutoMapper** - Object-to-object mapping
 - **MassTransit** - Message bus abstraction
 - **Polly** - Resilience and transient-fault-handling
 - **Ocelot** - API Gateway

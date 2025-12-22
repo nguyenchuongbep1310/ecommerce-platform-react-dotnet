@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "tujrpotg2EQ=",
+  "dgSpecHash": "PhdyhLm06xM=",
   "success": true,
   "projectFilePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/UserService/UserService/UserService.csproj",
   "expectedPackageFiles": [
+    "/Users/chuongnguyen/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/automapper.extensions.microsoft.dependencyinjection/12.0.1/automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/consul/1.7.14.9/consul.1.7.14.9.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/fluentvalidation/11.9.0/fluentvalidation.11.9.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/fluentvalidation.dependencyinjectionextensions/11.9.0/fluentvalidation.dependencyinjectionextensions.11.9.0.nupkg.sha512",

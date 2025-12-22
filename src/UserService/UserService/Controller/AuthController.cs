@@ -11,6 +11,7 @@ using UserService.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using AutoMapper;
 
 namespace UserService.Controllers
 {
@@ -22,17 +23,20 @@ namespace UserService.Controllers
         private readonly IConfiguration _configuration;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AuthController> _logger;
+        private readonly IMapper _mapper;
 
         public AuthController(
             UserManager<ApplicationUser> userManager, 
             IConfiguration configuration, 
             ApplicationDbContext context,
-            ILogger<AuthController> logger)
+            ILogger<AuthController> logger,
+            IMapper mapper)
         {
             _userManager = userManager;
             _configuration = configuration;
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -251,19 +255,9 @@ namespace UserService.Controllers
                 return NotFound(new { Message = "User not found" });
             }
 
-            return Ok(new UserProfileDto
-            {
-                Id = user.Id,
-                Email = user.Email!,
-                UserName = user.UserName!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Address = user.Address,
-                City = user.City,
-                State = user.State,
-                Country = user.Country,
-                ZipCode = user.ZipCode
-            });
+            // Use AutoMapper to map ApplicationUser to UserProfileDto
+            var userProfile = _mapper.Map<UserProfileDto>(user);
+            return Ok(userProfile);
         }
 
         /// <summary>

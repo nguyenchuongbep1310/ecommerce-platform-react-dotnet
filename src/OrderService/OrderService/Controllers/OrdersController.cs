@@ -5,6 +5,7 @@ using MediatR;
 using System.Security.Claims;
 using System.Text.Json;
 using OrderService.DTOs;
+using AutoMapper;
 
 namespace OrderService.Controllers
 {
@@ -14,11 +15,13 @@ namespace OrderService.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IMapper _mapper;
 
-        public OrdersController(IMediator mediator, IHttpClientFactory clientFactory)
+        public OrdersController(IMediator mediator, IHttpClientFactory clientFactory, IMapper mapper)
         {
             _mediator = mediator;
             _clientFactory = clientFactory;
+            _mapper = mapper;
         }
 
         // POST: api/Orders/place
@@ -110,20 +113,8 @@ namespace OrderService.Controllers
 
             var orders = await _mediator.Send(new GetOrdersByUserIdQuery(userId));
             
-            var orderDtos = orders.Select(o => new OrderService.DTOs.OrderDto
-            {
-                Id = o.Id,
-                UserId = o.UserId,
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                Items = o.Items.Select(i => new OrderService.DTOs.OrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice
-                }).ToList()
-            }).ToList();
+            // Use AutoMapper to map Order entities to OrderDto
+            var orderDtos = _mapper.Map<List<OrderDto>>(orders);
 
             return Ok(orderDtos);
         }

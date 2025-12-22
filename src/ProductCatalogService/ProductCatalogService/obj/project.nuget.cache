@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "yiuz9ujWyNI=",
+  "dgSpecHash": "8IcTxskzR5g=",
   "success": true,
   "projectFilePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ProductCatalogService/ProductCatalogService/ProductCatalogService.csproj",
   "expectedPackageFiles": [
@@ -16,6 +16,8 @@
     "/Users/chuongnguyen/.nuget/packages/aspnetcore.healthchecks.ui.core/8.0.1/aspnetcore.healthchecks.ui.core.8.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/aspnetcore.healthchecks.ui.data/8.0.1/aspnetcore.healthchecks.ui.data.8.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/aspnetcore.healthchecks.ui.inmemory.storage/8.0.1/aspnetcore.healthchecks.ui.inmemory.storage.8.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/automapper.extensions.microsoft.dependencyinjection/12.0.1/automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/consul/1.7.14.9/consul.1.7.14.9.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/dapper/2.0.123/dapper.2.0.123.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/elastic.clients.elasticsearch/8.15.6/elastic.clients.elasticsearch.8.15.6.nupkg.sha512",
@@ -56,6 +58,7 @@
     "/Users/chuongnguyen/.nuget/packages/microsoft.entityframeworkcore.relational/10.0.1/microsoft.entityframeworkcore.relational.10.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.apidescription.server/10.0.0/microsoft.extensions.apidescription.server.10.0.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.caching.stackexchangeredis/10.0.1/microsoft.extensions.caching.stackexchangeredis.10.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/2.1.0/microsoft.extensions.dependencyinjection.abstractions.2.1.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.dependencymodel/10.0.1/microsoft.extensions.dependencymodel.10.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/10.0.1/microsoft.extensions.diagnostics.healthchecks.entityframeworkcore.10.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.abstractions/7.1.2/microsoft.identitymodel.abstractions.7.1.2.nupkg.sha512",
