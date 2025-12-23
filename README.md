@@ -35,6 +35,8 @@ A **full-stack distributed e-commerce platform** demonstrating enterprise-grade 
 | **Event-Driven**               | RabbitMQ, MassTransit     | ✅ Async Messaging        |
 | **Service Discovery**          | Consul                    | ✅ Dynamic Discovery      |
 | **API Gateway**                | Ocelot                    | ✅ Unified Entry Point    |
+| **Clean Architecture**         | DDD, Hexagonal Principles | ✅ Implemented (Product)  |
+| **Background Tasks**           | Hangfire, Hosted Services | ✅ Fully Automated        |
 | **Observability**              | Jaeger, Seq, Grafana      | ✅ Full Tracing           |
 | **Resilience**                 | Polly                     | ✅ Retry, Circuit Breaker |
 
@@ -52,6 +54,8 @@ A **full-stack distributed e-commerce platform** demonstrating enterprise-grade 
 - [🔢 API Versioning](#-api-versioning)
 - [📚 API Documentation](#-api-documentation)
 - [🧪 Testing](#-testing)
+- [🏗️ Clean Architecture](#%EF%B8%8F-clean-architecture)
+- [🕒 Background Tasks](#-background-tasks)
 - [🚀 Deployment](#-deployment)
 - [📊 Monitoring & Observability](#-monitoring--observability)
 - [� Security](#-security)
@@ -149,6 +153,20 @@ A **full-stack distributed e-commerce platform** demonstrating enterprise-grade 
 
 </details>
 
+<details open>
+<summary><b>🕒 Background & Scheduled Tasks</b></summary>
+
+| Task                        | Implementation         | Purpose                       |
+| --------------------------- | ---------------------- | ----------------------------- |
+| **Search Index Sync**       | Background Service     | Sync DB changes to ES         |
+| **Proactive Cache Warming** | Background Service     | Pre-load hot data into Redis  |
+| **Inventory Monitoring**    | Background Service     | Low stock alerts & reporting  |
+| **Analytics Processing**    | Hangfire Recurring Job | Nightly data aggregation      |
+| **Automated Data Cleanup**  | Hangfire Recurring Job | Remove stale logs/temp data   |
+| **Popularity Calculation**  | Hangfire Recurring Job | Update product ranking scores |
+
+</details>
+
 ---
 
 ## 🏗️ Architecture Overview
@@ -167,9 +185,9 @@ The system is composed of **7 Core Microservices** and **6 Infrastructure Servic
     │                 │
     ▼                 ▼
 ┌─────────┐      ┌─────────────┐
-│  User   │      │   Product   │
-│ Service │      │   Service   │
-│  :5001  │      │    :5002    │
+│  User   │      │   Product   │ <─── [Clean Architecture]
+│ Service │      │   Service   │      (Domain, App, Infra, API)
+│  :5001  │      │    :5002    │ ──── [Background Tasks]
 └─────────┘      └─────────────┘
                         │
     ┌───────────────────┼───────────────────┐
@@ -191,16 +209,16 @@ The system is composed of **7 Core Microservices** and **6 Infrastructure Servic
 
 ### Key Components
 
-| Component                 | Responsibility                           | Technology                                        | Port   |
-| :------------------------ | :--------------------------------------- | :------------------------------------------------ | :----- |
-| **API Gateway**           | External Entry Point, Routing, Auth      | Ocelot (**.NET 10**)                              | `8080` |
-| **User Service**          | User Identity, Authentication (JWT)      | **.NET 10**, PostgreSQL, ASP.NET Identity         | `5001` |
-| **Product Service**       | Product Catalog, Inventory, Search       | **.NET 10**, PostgreSQL, Redis, **Elasticsearch** | `5002` |
-| **Shopping Cart Service** | Cart State Management                    | **.NET 10**, PostgreSQL                           | `5003` |
-| **Order Service**         | Transaction Orchestration, Saga Pattern  | **.NET 10**, PostgreSQL, MassTransit              | `5004` |
-| **Payment Service**       | Payment Processing (Stripe Integration)  | **.NET 10**                                       | `5005` |
-| **Notification Service**  | Asynchronous Event Consumer, SignalR Hub | **.NET 10**, MassTransit, SignalR                 | `5006` |
-| **Web Client**            | React Frontend                           | React 19, Vite, SignalR Client                    | `80`   |
+| Component                 | Responsibility                           | Technology                                      | Port   |
+| :------------------------ | :--------------------------------------- | :---------------------------------------------- | :----- |
+| **API Gateway**           | External Entry Point, Routing, Auth      | Ocelot (**.NET 10**)                            | `8080` |
+| **User Service**          | User Identity, Authentication (JWT)      | **.NET 10**, PostgreSQL, ASP.NET Identity       | `5001` |
+| **Product Service**       | Product Catalog, Inventory, Search       | **Clean Architecture**, .NET 10, PostgreSQL, ES | `5002` |
+| **Shopping Cart Service** | Cart State Management                    | **.NET 10**, PostgreSQL                         | `5003` |
+| **Order Service**         | Transaction Orchestration, Saga Pattern  | **.NET 10**, PostgreSQL, MassTransit            | `5004` |
+| **Payment Service**       | Payment Processing (Stripe Integration)  | **.NET 10**                                     | `5005` |
+| **Notification Service**  | Asynchronous Event Consumer, SignalR Hub | **.NET 10**, MassTransit, SignalR               | `5006` |
+| **Web Client**            | React Frontend                           | React 19, Vite, SignalR Client                  | `80`   |
 
 ### Infrastructure Services
 
@@ -260,6 +278,8 @@ The system implements multiple communication patterns for different scenarios:
 - **Polly** - Resilience and transient-fault-handling
 - **Ocelot** - API Gateway
 - **SignalR** - Real-time communication
+- **Hangfire** - Background job processing
+- **Clean Architecture** - Domain-Driven Design (DDD) principles
 
 ### Frontend
 
@@ -1558,6 +1578,27 @@ GET /api/orders/history
 Authorization: Bearer {token}
 ```
 
+### Background Job Endpoints
+
+#### Trigger Daily Analytics
+
+```http
+POST /api/backgroundjobs/trigger-analytics
+Authorization: Bearer {token} (Admin only)
+```
+
+#### Get Recurring Jobs List
+
+```http
+GET /api/backgroundjobs/recurring-jobs
+```
+
+#### Get Background Services Status
+
+```http
+GET /api/backgroundjobs/background-services
+```
+
 ---
 
 ## 🧪 Testing
@@ -1598,10 +1639,86 @@ docker run --rm -i \
 ```bash
 # Run all tests
 dotnet test
+```
+
+---
+
+## 🏗️ Clean Architecture
+
+The platform is moving towards a **Clean Architecture** (Onion Architecture) to ensure better separation of concerns, testability, and maintainability. The **ProductCatalogService** is the first service to fully implement this pattern.
+
+### Layered Structure
+
+```
+┌─────────────────────────────────────────┐
+│         API/Presentation Layer          │
+│     (Controllers, Middleware, DTOs)     │
+│     Depends on: Application, Infra      │
+└────────────────┬────────────────────────┘
+                 │
+┌────────────────▼────────────────────────┐
+│         Application Layer               │
+│   (Use Cases, Interfaces, Behaviors)    │
+│     Depends on: Domain                  │
+└────────────────┬────────────────────────┘
+                 │
+┌────────────────▼────────────────────────┐
+│           Domain Layer                  │
+│  (Entities, Value Objects, Logic)       │
+│     Depends on: Nothing                 │
+└─────────────────────────────────────────┘
+                 ▲
+┌────────────────┴────────────────────────┐
+│       Infrastructure Layer              │
+│ (Persistence, External Services, Jobs)  │
+│  Depends on: Application, Domain        │
+└─────────────────────────────────────────┘
+```
+
+### Key Principles
+
+- ✅ **Framework Independent** - The core business logic doesn't depend on EF Core, Web API, or any other library.
+- ✅ **Testable** - Business rules can be tested without the UI, Database, or any other external element.
+- ✅ **Independent of UI** - The UI can change easily without affecting the business rules.
+- ✅ **Independent of Database** - Business rules are not bound to a specific database (PostgreSQL/Redis).
+
+---
+
+## 🕒 Background Tasks
+
+The platform leverages **Hosted Services (IHostedService)** for continuous background operations and **Hangfire** for complex scheduled/recurring tasks.
+
+### Continuous Background Services
+
+These services run in the background from the moment the application starts:
+
+1. **Elasticsearch Sync Service**: Monitors database changes and ensures the search index is always up-to-date.
+2. **Cache Warming Service**: Proactively loads "hot" products into Redis to ensure zero-latency for the first users.
+3. **Inventory Monitoring**: Low-priority background thread that checks for stock discrepancies and generates alerts.
+
+### Scheduled Recurring Jobs (Hangfire)
+
+Managed via a dedicated dashboard, these jobs handle periodic maintenance and processing:
+
+- **Daily Analytics**: Aggregates sales and traffic data every midnight.
+- **Weekly Inventory Report**: Generates a comprehensive PDF report of stock levels.
+- **Product Popularity**: Recalculates product "hotness" based on views and purchases.
+- **Cache Cleanup**: Forces a full cache invalidation for expired or stale data patterns.
+
+### Hangfire Dashboard
+
+Monitor, trigger, and debug background jobs in real-time.
+
+- **URL**: `http://localhost:5002/hangfire`
+- **Security**: Requires admin authentication in production.
+
+---
 
 # Run tests for specific service
+
 dotnet test src/ProductCatalogService/ProductCatalogService.Tests
-```
+
+````
 
 ---
 
@@ -1621,7 +1738,7 @@ docker compose down
 
 # Remove volumes (fresh start)
 docker compose down -v
-```
+````
 
 ### Kubernetes with Helm (Production)
 
