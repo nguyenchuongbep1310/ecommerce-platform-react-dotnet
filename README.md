@@ -571,7 +571,7 @@ docker compose up -d consul rabbitmq redis seq prometheus grafana jaeger \
 
 ```bash
 # Run Product Service
-cd src/ProductCatalogService/ProductCatalogService
+cd src/ProductCatalogService/ProductCatalogService.API
 dotnet run
 
 # In a new terminal, run User Service
@@ -1716,7 +1716,7 @@ Monitor, trigger, and debug background jobs in real-time.
 
 # Run tests for specific service
 
-dotnet test src/ProductCatalogService/ProductCatalogService.Tests
+dotnet test src/ProductCatalogService/ProductCatalogService.API/ProductCatalogService.csproj
 
 ````
 

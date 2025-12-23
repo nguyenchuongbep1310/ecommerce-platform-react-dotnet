@@ -88,7 +88,7 @@ services:
   productcatalogservice:
     build:
       context: ..
-      dockerfile: src/ProductCatalogService/ProductCatalogService/Dockerfile
+      dockerfile: src/ProductCatalogService/ProductCatalogService.API/Dockerfile
     container_name: productcatalogservice
     environment:
       ConnectionStrings__DefaultConnection: "Host=db_product;Port=5432;Database=product_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"

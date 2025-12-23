@@ -75,7 +75,7 @@ jobs:
           declare -A services=( 
             ["apigateway"]="src/ApiGateway/ApiGateway/Dockerfile"
             ["userservice"]="src/UserService/UserService/Dockerfile" 
-            ["productcatalogservice"]="src/ProductCatalogService/ProductCatalogService/Dockerfile"
+            ["productcatalogservice"]="src/ProductCatalogService/ProductCatalogService.API/Dockerfile"
             ["shoppingcartservice"]="src/ShoppingCartService/ShoppingCartService/Dockerfile"
             ["orderservice"]="src/OrderService/OrderService/Dockerfile"
             ["paymentservice"]="src/PaymentService/PaymentService/Dockerfile"

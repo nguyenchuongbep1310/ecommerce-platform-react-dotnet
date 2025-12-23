@@ -180,7 +180,7 @@ var orderDtos = _mapper.Map<List<OrderDto>>(orders);
 ### Project Files (.csproj)
 
 - `OrderService/OrderService.csproj`
-- `ProductCatalogService/ProductCatalogService.csproj`
+- `ProductCatalogService/ProductCatalogService.API/ProductCatalogService.csproj`
 - `UserService/UserService.csproj`
 - `ShoppingCartService/ShoppingCartService.csproj`
 
@@ -200,7 +200,7 @@ var orderDtos = _mapper.Map<List<OrderDto>>(orders);
 ### New Files Created
 
 - `OrderService/Application/Mappings/OrderMappingProfile.cs`
-- `ProductCatalogService/Application/Mappings/ProductMappingProfile.cs`
+- `ProductCatalogService/ProductCatalogService.Application/Mappings/ProductMappingProfile.cs`
 - `UserService/Mappings/UserMappingProfile.cs`
 - `ShoppingCartService/Mappings/CartMappingProfile.cs`
 - `docs/AUTOMAPPER.md`

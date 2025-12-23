@@ -22,7 +22,7 @@ This guide will help you get started with the background tasks and scheduled job
 2. **Run the Product Catalog Service**:
 
    ```bash
-   cd /path/to/ProductCatalogService/ProductCatalogService
+   cd /path/to/ProductCatalogService/ProductCatalogService.API
    dotnet run
    ```
 
