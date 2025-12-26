@@ -1,11 +1,11 @@
-using Serilog;
+using System.Text;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using NotificationService.Consumers;
 using NotificationService.Hubs;
 using NotificationService.Middleware;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Serilog;
 
 Console.WriteLine("--- STARTING NOTIFICATION SERVICE ---");
 

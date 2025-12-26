@@ -1,7 +1,7 @@
+using System.Text;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using PaymentService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "pWV7a0gnmng=",
+  "dgSpecHash": "xEh3E4cn/oI=",
   "success": true,
   "projectFilePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ApiGateway/ApiGateway/ApiGateway.csproj",
   "expectedPackageFiles": [
     "/Users/chuongnguyen/.nuget/packages/consul/1.7.14.7/consul.1.7.14.7.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/fluentvalidation/11.11.0/fluentvalidation.11.11.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/ipaddressrange/6.2.0/ipaddressrange.6.2.0.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/10.0.0/microsoft.aspnetcore.authentication.jwtbearer.10.0.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.jsonpatch/9.0.4/microsoft.aspnetcore.jsonpatch.9.0.4.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.middlewareanalysis/9.0.4/microsoft.aspnetcore.middlewareanalysis.9.0.4.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.aspnetcore.mvc.newtonsoftjson/9.0.4/microsoft.aspnetcore.mvc.newtonsoftjson.9.0.4.nupkg.sha512",
@@ -14,6 +15,12 @@
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.apidescription.server/10.0.0/microsoft.extensions.apidescription.server.10.0.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.dependencymodel/10.0.0/microsoft.extensions.dependencymodel.10.0.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.extensions.diagnosticadapter/3.1.32/microsoft.extensions.diagnosticadapter.3.1.32.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.abstractions/8.4.0/microsoft.identitymodel.abstractions.8.4.0.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.0.1/microsoft.identitymodel.jsonwebtokens.8.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.logging/8.4.0/microsoft.identitymodel.logging.8.4.0.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.protocols/8.0.1/microsoft.identitymodel.protocols.8.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.protocols.openidconnect/8.0.1/microsoft.identitymodel.protocols.openidconnect.8.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/microsoft.identitymodel.tokens/8.4.0/microsoft.identitymodel.tokens.8.4.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/microsoft.openapi/2.3.0/microsoft.openapi.2.3.0.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/newtonsoft.json.bson/1.0.2/newtonsoft.json.bson.1.0.2.nupkg.sha512",
@@ -39,7 +46,8 @@
     "/Users/chuongnguyen/.nuget/packages/swashbuckle.aspnetcore.swagger/10.0.1/swashbuckle.aspnetcore.swagger.10.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/swashbuckle.aspnetcore.swaggergen/10.0.1/swashbuckle.aspnetcore.swaggergen.10.0.1.nupkg.sha512",
     "/Users/chuongnguyen/.nuget/packages/swashbuckle.aspnetcore.swaggerui/10.0.1/swashbuckle.aspnetcore.swaggerui.10.0.1.nupkg.sha512",
-    "/Users/chuongnguyen/.nuget/packages/system.diagnostics.diagnosticsource/10.0.1/system.diagnostics.diagnosticsource.10.0.1.nupkg.sha512"
+    "/Users/chuongnguyen/.nuget/packages/system.diagnostics.diagnosticsource/10.0.1/system.diagnostics.diagnosticsource.10.0.1.nupkg.sha512",
+    "/Users/chuongnguyen/.nuget/packages/system.identitymodel.tokens.jwt/8.0.1/system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512"
   ],
   "logs": [
     {
@@ -50,6 +58,18 @@
       "warningLevel": 1,
       "filePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ApiGateway/ApiGateway/ApiGateway.csproj",
       "libraryId": "System.Diagnostics.DiagnosticSource",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "ApiGateway depends on Microsoft.IdentityModel.Tokens (>= 8.3.2) but Microsoft.IdentityModel.Tokens 8.3.2 was not found. Microsoft.IdentityModel.Tokens 8.4.0 was resolved instead.",
+      "projectPath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ApiGateway/ApiGateway/ApiGateway.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/chuongnguyen/Downloads/Coding/ecommerce-platform/src/ApiGateway/ApiGateway/ApiGateway.csproj",
+      "libraryId": "Microsoft.IdentityModel.Tokens",
       "targetGraphs": [
         "net10.0"
       ]

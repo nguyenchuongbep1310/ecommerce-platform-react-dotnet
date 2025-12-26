@@ -1,17 +1,17 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Consul;
+using Hangfire;
+using Hangfire.PostgreSql;
+using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using MassTransit;
+using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Hangfire;
-using Hangfire.PostgreSql;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using ProductCatalogService.Infrastructure.Authorization;
 using ProductCatalogService.Middleware;
 

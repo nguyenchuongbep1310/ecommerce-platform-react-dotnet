@@ -1,12 +1,12 @@
-using Ocelot.DependencyInjection;
-using Ocelot.Middleware;
-using Ocelot.Provider.Consul;
-using Serilog;
-using OpenTelemetry.Metrics;
+using System.Text;
 using ApiGateway.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
+using Ocelot.Provider.Consul;
+using OpenTelemetry.Metrics;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
