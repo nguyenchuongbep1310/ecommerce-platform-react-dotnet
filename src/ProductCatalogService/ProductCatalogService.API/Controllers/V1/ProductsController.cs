@@ -100,6 +100,7 @@ public class ProductsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success status</returns>
     [HttpPost("{id}/reduce-stock")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

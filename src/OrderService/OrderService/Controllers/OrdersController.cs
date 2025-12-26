@@ -11,6 +11,7 @@ namespace OrderService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly IMediator _mediator;

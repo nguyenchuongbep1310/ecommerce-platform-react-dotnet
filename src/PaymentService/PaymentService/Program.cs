@@ -1,4 +1,7 @@
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using PaymentService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +11,40 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+
+// --- AUTHENTICATION & AUTHORIZATION ---
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"];
+
+if (!string.IsNullOrEmpty(secretKey))
+{
+    var key = Encoding.UTF8.GetBytes(secretKey);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // Only for dev
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+}
+else
+{
+    Console.WriteLine("Warning: JwtSettings:SecretKey is missing configuration.");
+}
 
 builder.Services.AddMassTransit(x =>
 {
@@ -41,6 +78,7 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 
 // app.UseHttpsRedirection(); // Disable HttpsRedirection for internal Docker comms to avoid certificate issues if not configured
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");

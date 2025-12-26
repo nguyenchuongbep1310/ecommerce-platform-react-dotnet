@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
+using ProductCatalogService.Domain.Exceptions;
 
 namespace ProductCatalogService.Middleware;
 
@@ -47,18 +49,33 @@ public class ExceptionHandlingMiddleware
 
         switch (exception)
         {
-            case ArgumentNullException _:
-            case ArgumentException _:
+            case ValidationException validationException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
-                response.Message = "Invalid request parameters";
-                response.Error = exception.Message;
+                response.Message = "Validation failed";
+                response.Error = "One or more validation errors occurred.";
+                response.ValidationErrors = validationException.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    );
                 break;
 
+            case ProductNotFoundException _:
             case KeyNotFoundException _:
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 response.Message = "Resource not found";
+                response.Error = exception.Message;
+                break;
+
+            case InvalidProductException _:
+            case ArgumentNullException _:
+            case ArgumentException _:
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                response.Message = "Invalid request";
                 response.Error = exception.Message;
                 break;
 
@@ -110,4 +127,5 @@ public class ErrorResponse
     public string? StackTrace { get; set; }
     public string TraceId { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; }
+    public IDictionary<string, string[]>? ValidationErrors { get; set; }
 }

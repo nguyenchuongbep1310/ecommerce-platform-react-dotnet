@@ -28,7 +28,7 @@ public class BackgroundJobsController : ControllerBase
     public IActionResult TriggerAnalytics()
     {
         var jobId = _backgroundJobClient.Enqueue<ProductCatalogService.Infrastructure.Jobs.Scheduled.ProductCatalogJobs>(
-            job => job.GenerateDailyAnalyticsAsync());
+            job => job.GenerateDaBackgilyAnalyticsAsync());
 
         _logger.LogInformation("Manually triggered analytics generation. Job ID: {JobId}", jobId);
 

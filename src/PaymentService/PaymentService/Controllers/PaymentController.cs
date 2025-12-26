@@ -6,6 +6,7 @@ namespace PaymentService.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class PaymentController : ControllerBase
     {
         private readonly ILogger<PaymentController> _logger;

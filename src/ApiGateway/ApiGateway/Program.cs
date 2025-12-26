@@ -4,6 +4,9 @@ using Ocelot.Provider.Consul;
 using Serilog;
 using OpenTelemetry.Metrics;
 using ApiGateway.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,40 @@ builder.Services.AddHealthChecks();
 
 // Add Ocelot services
 builder.Services.AddOcelot().AddConsul();
+
+// --- AUTHENTICATION & AUTHORIZATION ---
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"];
+
+if (!string.IsNullOrEmpty(secretKey))
+{
+    var key = Encoding.UTF8.GetBytes(secretKey);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer("ApiSecurity", options =>
+    {
+        options.RequireHttpsMetadata = false; // Only for dev
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+}
+else
+{
+    Console.WriteLine("Warning: JwtSettings:SecretKey is missing configuration.");
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",
@@ -67,6 +104,9 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 
 // 4. CORS (before Ocelot)
 app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseOpenTelemetryPrometheusScrapingEndpoint(); // Exposes the metrics at /metrics
 app.MapHealthChecks("/health");

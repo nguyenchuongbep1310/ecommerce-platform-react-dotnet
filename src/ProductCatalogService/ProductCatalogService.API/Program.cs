@@ -9,6 +9,9 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ProductCatalogService.Infrastructure.Authorization;
 using ProductCatalogService.Middleware;
 
@@ -30,6 +33,45 @@ builder.Services.AddApplication();
 
 // Add Infrastructure Layer (DbContext, Repositories, Services, Cache, Elasticsearch)
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// --- AUTHENTICATION & AUTHORIZATION ---
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"];
+
+if (!string.IsNullOrEmpty(secretKey))
+{
+    var key = Encoding.UTF8.GetBytes(secretKey);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // Only for dev
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+}
+else
+{
+    Console.WriteLine("Warning: JwtSettings:SecretKey is missing configuration.");
+}
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
 
 // ============================================================================
 // API Layer Configuration
@@ -250,6 +292,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 // --- HANGFIRE DASHBOARD ---

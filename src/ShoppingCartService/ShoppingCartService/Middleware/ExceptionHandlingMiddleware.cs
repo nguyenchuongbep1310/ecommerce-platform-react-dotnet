@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
 
 namespace ShoppingCartService.Middleware;
 
@@ -47,12 +48,17 @@ public class ExceptionHandlingMiddleware
 
         switch (exception)
         {
-            case ArgumentNullException _:
-            case ArgumentException _:
+            case ValidationException validationException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
-                response.Message = "Invalid request parameters";
-                response.Error = exception.Message;
+                response.Message = "Validation failed";
+                response.Error = "One or more validation errors occurred.";
+                response.ValidationErrors = validationException.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    );
                 break;
 
             case KeyNotFoundException _:
@@ -66,6 +72,14 @@ public class ExceptionHandlingMiddleware
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 response.Message = "Unauthorized access";
+                response.Error = exception.Message;
+                break;
+
+            case ArgumentNullException _:
+            case ArgumentException _:
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                response.Message = "Invalid request";
                 response.Error = exception.Message;
                 break;
 
@@ -110,4 +124,5 @@ public class ErrorResponse
     public string? StackTrace { get; set; }
     public string TraceId { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; }
+    public IDictionary<string, string[]>? ValidationErrors { get; set; }
 }

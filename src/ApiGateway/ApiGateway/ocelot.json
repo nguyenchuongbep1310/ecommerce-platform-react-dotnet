@@ -32,10 +32,13 @@
         }
       ],
       "ServiceName": null,
-      "UpstreamPathTemplate": "/api/Auth/profile",
       "UpstreamHttpMethod": [
         "Get"
-      ]
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "ApiSecurity",
+        "AllowedScopes": []
+      }
     },
     {
       "DownstreamPathTemplate": "/api/Products/{everything}",
@@ -66,7 +69,11 @@
         "Get",
         "Post",
         "Delete"
-      ]
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "ApiSecurity",
+        "AllowedScopes": []
+      }
     },
     {
       "DownstreamPathTemplate": "/api/Orders/{everything}",
@@ -82,7 +89,11 @@
         "Get",
         "Post",
         "Delete"
-      ]
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "ApiSecurity",
+        "AllowedScopes": []
+      }
     },
     {
       "DownstreamPathTemplate": "/notificationHub/negotiate",
