@@ -46,6 +46,8 @@ out/
 .env.*.local
 *.pfx
 *.p12
+*.postman_collection.json
+*.postman_environment.json
 
 # ===========================
 # Operating System
