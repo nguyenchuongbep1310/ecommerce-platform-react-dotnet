@@ -40,6 +40,16 @@ A **full-stack distributed e-commerce platform** demonstrating enterprise-grade 
 | **Observability**              | Jaeger, Seq, Grafana      | ✅ Full Tracing           |
 | **Resilience**                 | Polly                     | ✅ Retry, Circuit Breaker |
 
+### 🆕 Recent Updates (December 2025)
+
+- ✅ **Saga Pattern Enhancement**: Implemented compensating transactions for stock release when payment fails
+- ✅ **Distributed Transaction Management**: Full saga orchestration with MassTransit State Machine
+- ✅ **Fixed API Gateway Routing**: Resolved 404/401/400 errors by properly mapping versioned API endpoints
+- ✅ **JWT Configuration**: Added missing JWT environment variables to API Gateway in docker-compose.yml
+- ✅ **Ocelot Configuration**: Updated routes to support both GET and POST methods for Auth endpoints
+- ✅ **Product API Versioning**: Correctly mapped `/api/Products` to `/api/v1/Products` in downstream services
+- ✅ **Enhanced Documentation**: Comprehensive Saga pattern guide with troubleshooting and best practices
+
 ---
 
 ## 📑 Table of Contents
@@ -55,11 +65,12 @@ A **full-stack distributed e-commerce platform** demonstrating enterprise-grade 
 - [📚 API Documentation](#-api-documentation)
 - [🧪 Testing](#-testing)
 - [🏗️ Clean Architecture](#%EF%B8%8F-clean-architecture)
+- [🔄 Saga Pattern](#-saga-pattern)
 - [🕒 Background Tasks](#-background-tasks)
 - [🚀 Deployment](#-deployment)
 - [📊 Monitoring & Observability](#-monitoring--observability)
-- [� Security](#-security)
-- [�🔧 Troubleshooting](#-troubleshooting)
+- [🔒 Security](#-security)
+- [🔧 Troubleshooting](#-troubleshooting)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -403,6 +414,7 @@ EOF
 >
 > - **Never commit the `.env` file** to version control (it's already in `.gitignore`)
 > - **Generate a strong `JWT_SECRET`**: Use a random string generator or run: `openssl rand -base64 32`
+> - **JWT settings are REQUIRED**: The API Gateway needs these to authenticate requests. Missing JWT config will cause 401/403 errors
 > - **Use test keys** for Stripe in development, production keys only in production
 > - **Change default database credentials** in production environments
 
@@ -458,7 +470,7 @@ curl http://localhost:5002/health
 curl http://localhost:5001/health
 
 # Check if API Gateway is responding
-curl http://localhost:8080/api/products/products
+curl http://localhost:8080/api/Products
 ```
 
 #### Step 6: Access the Application
@@ -524,17 +536,17 @@ curl http://localhost:5002/health | jq
 curl http://localhost:5001/health | jq
 
 # Get all products (should return product list)
-curl http://localhost:8080/api/products/products | jq
+curl http://localhost:8080/api/Products | jq
 
 # Test specific product
-curl http://localhost:8080/api/products/products/1 | jq
+curl http://localhost:8080/api/Products/1 | jq
 ```
 
 #### Test User Registration and Login
 
 ```bash
 # Register a new user
-curl -X POST http://localhost:8080/api/auth/register \
+curl -X POST http://localhost:8080/api/Auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -545,13 +557,42 @@ curl -X POST http://localhost:8080/api/auth/register \
   }'
 
 # Login
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8080/api/Auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
     "password": "Test123!"
   }' | jq
 ```
+
+### 📮 Postman API Testing
+
+For easier API testing, we provide a complete Postman collection with all endpoints:
+
+**📦 Files Available:**
+
+- `E-commerce-Platform-API.postman_collection.json` - Complete API collection
+- `E-commerce-Platform-Local.postman_environment.json` - Environment variables
+- `POSTMAN_GUIDE.md` - Detailed usage guide
+
+**🚀 Quick Import:**
+
+1. Open Postman
+2. Click **Import** → Upload both JSON files
+3. Select **"E-commerce Platform - Local"** environment
+4. Start testing!
+
+**✨ Features:**
+
+- ✅ All API endpoints organized by category
+- ✅ Automatic token management (login saves token automatically)
+- ✅ Pre-configured test scripts
+- ✅ Environment variables for easy customization
+- ✅ Complete authentication flow (register, login, refresh, logout)
+- ✅ Products, Cart, and Orders endpoints
+- ✅ Health check endpoints
+
+**📚 See [POSTMAN_GUIDE.md](POSTMAN_GUIDE.md) for detailed instructions and testing flows.**
 
 ### 🛠️ Local Development (Without Docker)
 
@@ -764,6 +805,52 @@ docker exec -it redis redis-cli ping
 # Restart Redis
 docker compose restart redis
 ```
+
+</details>
+
+<details>
+<summary><b>🔴 API Gateway Returns 404/401/400 Errors</b></summary>
+
+**Error**: Frontend shows errors when trying to register, login, or view products
+
+**Common Causes**:
+
+1. Ocelot routing configuration doesn't match actual API endpoints
+2. Missing JWT configuration in API Gateway
+3. API versioning mismatch
+
+**Solution**:
+
+```bash
+# 1. Check if API Gateway is running
+docker compose ps apigateway
+
+# 2. Check API Gateway logs for errors
+docker compose logs apigateway --tail=50
+
+# 3. Verify JWT environment variables are set in docker-compose.yml
+# The apigateway service should have:
+#   environment:
+#     JwtSettings__SecretKey: "${JWT_SECRET}"
+#     JwtSettings__Issuer: "${JWT_ISSUER}"
+#     JwtSettings__Audience: "${JWT_AUDIENCE}"
+
+# 4. Test endpoints directly through API Gateway
+curl http://localhost:8080/api/Products
+curl -X POST http://localhost:8080/api/Auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"Test123!","confirmPassword":"Test123!","firstName":"Test","lastName":"User"}'
+
+# 5. If routes are incorrect, rebuild API Gateway
+docker compose up apigateway --build -d
+```
+
+**Key Configuration Notes**:
+
+- Product Service uses versioned APIs (`/api/v1/Products`)
+- Ocelot must map `/api/Products` → `/api/v1/Products`
+- Auth routes need both `GET` and `POST` methods enabled
+- JWT settings must be configured in both services and API Gateway
 
 </details>
 
@@ -1681,6 +1768,510 @@ The platform is moving towards a **Clean Architecture** (Onion Architecture) to 
 - ✅ **Testable** - Business rules can be tested without the UI, Database, or any other external element.
 - ✅ **Independent of UI** - The UI can change easily without affecting the business rules.
 - ✅ **Independent of Database** - Business rules are not bound to a specific database (PostgreSQL/Redis).
+
+---
+
+## 🔄 Saga Pattern
+
+The platform implements the **Saga Pattern** using **MassTransit State Machine** to orchestrate distributed transactions across multiple microservices. This ensures data consistency without using distributed locks or two-phase commits.
+
+### What is the Saga Pattern?
+
+A **Saga** is a sequence of local transactions where each transaction updates data within a single service. If a local transaction fails, the saga executes **compensating transactions** to undo the changes made by preceding transactions.
+
+**Why Use Sagas?**
+
+- ❌ **Distributed transactions (2PC)** are complex, slow, and reduce availability
+- ❌ **Direct service coupling** creates tight dependencies
+- ✅ **Saga pattern** provides eventual consistency with loose coupling
+- ✅ **Compensating transactions** handle failures gracefully
+- ✅ **Event-driven architecture** enables asynchronous processing
+
+### Order Processing Saga
+
+When a user places an order, the saga coordinates the following workflow:
+
+```
+Order Placement → Stock Reservation → Payment Processing → Order Completion
+                      ↓ (failure)          ↓ (failure)
+                 Cancel Order         Release Stock + Cancel Order
+```
+
+### Architecture Components
+
+| Component                 | Responsibility                     | Technology                |
+| ------------------------- | ---------------------------------- | ------------------------- |
+| **OrderStateMachine**     | Orchestrates the saga workflow     | MassTransit State Machine |
+| **OrderState**            | Maintains saga instance state      | EF Core (PostgreSQL)      |
+| **OrderService**          | Initiates saga, handles completion | .NET 10, MediatR          |
+| **ProductCatalogService** | Reserves/releases stock            | Clean Architecture        |
+| **PaymentService**        | Processes payments                 | Stripe Integration        |
+| **RabbitMQ**              | Message broker for events/commands | MassTransit               |
+| **PostgreSQL**            | Saga state persistence             | Entity Framework Core     |
+
+### Saga States
+
+| State                  | Description                                 | Next Actions                      |
+| ---------------------- | ------------------------------------------- | --------------------------------- |
+| **Initial**            | Saga starts                                 | Transition to Submitted           |
+| **Submitted**          | Order submitted, awaiting stock reservation | Reserve stock or fail             |
+| **StockReservedState** | Stock reserved, awaiting payment            | Process payment or fail           |
+| **Completed**          | Order successfully completed ✅             | End saga                          |
+| **Failed**             | Order failed and cancelled ❌               | Execute compensating transactions |
+
+### State Transitions
+
+```
+                    ┌─────────────┐
+                    │   Initial   │
+                    └──────┬──────┘
+                           │ OrderSubmittedEvent
+                           ▼
+                    ┌─────────────┐
+              ┌────►│  Submitted  │
+              │     └──────┬──────┘
+              │            │ StockReservedEvent
+              │            ▼
+              │     ┌──────────────────┐
+              │     │ StockReservedState│
+              │     └──────┬───────────┘
+              │            │ PaymentCompletedEvent
+              │            ▼
+              │     ┌─────────────┐
+              │     │  Completed  │ ✅
+              │     └─────────────┘
+              │
+              │     StockReservationFailedEvent
+              │     or PaymentFailedEvent
+              │            │
+              │            ▼
+              │     ┌─────────────┐
+              └─────┤   Failed    │ ❌
+                    └─────────────┘
+```
+
+### Workflow Example
+
+#### Happy Path (Success)
+
+```
+1. User places order
+   └─► OrderService creates Order (Status: "Pending")
+        └─► Publishes OrderSubmittedEvent
+
+2. Saga receives event → State: Submitted
+   └─► Publishes ReserveStockCommand
+
+3. ProductCatalogService reserves stock
+   └─► Publishes StockReservedEvent
+
+4. Saga receives event → State: StockReservedState
+   └─► Publishes ProcessPaymentCommand
+
+5. PaymentService processes payment
+   └─► Publishes PaymentCompletedEvent
+
+6. Saga receives event → State: Completed
+   └─► Publishes CompleteOrderCommand
+
+7. OrderService updates Order (Status: "Completed")
+
+✅ Order successfully completed!
+```
+
+#### Failure with Compensation
+
+```
+1-4. (Same as happy path through stock reservation)
+
+5. PaymentService: Payment declined
+   └─► Publishes PaymentFailedEvent
+
+6. Saga receives event → State: Failed
+   ├─► Publishes ReleaseStockCommand (COMPENSATING TRANSACTION)
+   └─► Publishes CancelOrderCommand
+
+7a. ProductCatalogService restores stock quantities
+7b. OrderService updates Order (Status: "Cancelled")
+
+❌ Order cancelled, ✅ Stock restored
+```
+
+### Implementation Details
+
+#### Saga State Model
+
+```csharp
+public class OrderState : SagaStateMachineInstance
+{
+    public Guid CorrelationId { get; set; }        // Unique saga instance ID
+    public string CurrentState { get; set; }       // Current state name
+
+    public string UserId { get; set; }             // Order owner
+    public decimal TotalAmount { get; set; }       // Order total
+    public DateTime CreatedAt { get; set; }        // Saga start time
+    public DateTime UpdatedAt { get; set; }        // Last update time
+
+    public string? PaymentMethodId { get; set; }   // Payment method
+    public string? FailureReason { get; set; }     // Error details if failed
+    public string? ItemsJson { get; set; }         // Order items for compensation
+}
+```
+
+#### State Machine Configuration
+
+```csharp
+builder.Services.AddMassTransit(x =>
+{
+    // Configure Transactional Outbox
+    x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
+    {
+        o.QueryDelay = TimeSpan.FromSeconds(1);
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
+    // Register Saga State Machine
+    x.AddSagaStateMachine<OrderStateMachine, OrderState>()
+        .EntityFrameworkRepository(r =>
+        {
+            r.ExistingDbContext<OrderDbContext>();
+            r.UsePostgres();
+        });
+
+    x.AddConsumer<OrderCommandConsumers>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
+```
+
+#### Key Files
+
+| File                          | Purpose                              | Location                                                    |
+| ----------------------------- | ------------------------------------ | ----------------------------------------------------------- |
+| **OrderState.cs**             | Saga state model                     | `OrderService/Sagas/`                                       |
+| **OrderStateMachine.cs**      | Saga workflow definition             | `OrderService/Sagas/`                                       |
+| **CreateOrderHandler.cs**     | Initiates saga                       | `OrderService/Application/Handlers/`                        |
+| **ReserveStockConsumer.cs**   | Handles stock reservation            | `ProductCatalogService.Infrastructure/Messaging/Consumers/` |
+| **ReleaseStockConsumer.cs**   | Handles stock release (compensation) | `ProductCatalogService.Infrastructure/Messaging/Consumers/` |
+| **ProcessPaymentConsumer.cs** | Handles payment                      | `PaymentService/Consumers/`                                 |
+| **OrderCommandConsumers.cs**  | Completes/cancels order              | `OrderService/Consumers/`                                   |
+| **SagaCommands.cs**           | Command definitions                  | `Shared.Messages/Commands/`                                 |
+| **SagaResultEvents.cs**       | Event definitions                    | `Shared.Messages/Events/`                                   |
+
+### Monitoring Saga Execution
+
+#### View Saga States
+
+```bash
+# Connect to database
+docker exec -it db_order psql -U postgres -d order_db
+
+# Query saga states
+SELECT "CorrelationId", "CurrentState", "UserId", "TotalAmount",
+       "FailureReason", "CreatedAt"
+FROM "OrderState"
+ORDER BY "CreatedAt" DESC
+LIMIT 10;
+
+# Count by state
+SELECT "CurrentState", COUNT(*)
+FROM "OrderState"
+GROUP BY "CurrentState";
+
+# Saga success rate (last 24 hours)
+SELECT
+    COUNT(*) as total,
+    SUM(CASE WHEN "CurrentState" = 'Completed' THEN 1 ELSE 0 END) as completed,
+    SUM(CASE WHEN "CurrentState" = 'Failed' THEN 1 ELSE 0 END) as failed,
+    ROUND(100.0 * SUM(CASE WHEN "CurrentState" = 'Completed' THEN 1 ELSE 0 END) / COUNT(*), 2) as success_rate
+FROM "OrderState"
+WHERE "CreatedAt" >= NOW() - INTERVAL '24 hours';
+
+# Average saga duration
+SELECT
+    AVG(EXTRACT(EPOCH FROM ("UpdatedAt" - "CreatedAt"))) as avg_duration_seconds
+FROM "OrderState"
+WHERE "UpdatedAt" IS NOT NULL
+  AND "CreatedAt" >= NOW() - INTERVAL '24 hours';
+```
+
+#### View RabbitMQ Messages
+
+1. Open RabbitMQ Management UI: http://localhost:15672
+2. Login: `guest` / `guest`
+3. Navigate to **Queues** tab
+4. Observe message flow through saga queues:
+   - `OrderState` (saga queue)
+   - `ReserveStockCommand`
+   - `ProcessPaymentCommand`
+   - `CompleteOrderCommand`
+
+#### Distributed Tracing
+
+1. Open Jaeger: http://localhost:16686
+2. Select service: `OrderService`
+3. Find traces with: `OrderSubmittedEvent`
+4. View complete saga execution flow across all services
+
+#### View Logs in Seq
+
+1. Open Seq: http://localhost:5341
+2. Filter by service:
+   ```
+   Application = "OrderService"
+   ```
+3. Search for saga events:
+   ```
+   @Message like "%Saga%"
+   ```
+
+### Testing the Saga
+
+#### Test Successful Order
+
+```bash
+# 1. Login and get token
+curl -X POST http://localhost:8080/api/Auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "Test123!"}'
+
+# 2. Add item to cart
+curl -X POST http://localhost:8080/api/cart/add \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"productId": 1, "quantity": 2}'
+
+# 3. Place order (triggers saga)
+curl -X POST http://localhost:8080/api/Orders/place \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"paymentMethodId": "pm_card_visa"}'
+
+# Expected: Order status = "Completed"
+```
+
+#### Test Stock Failure
+
+```bash
+# Add excessive quantity
+curl -X POST http://localhost:8080/api/cart/add \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"productId": 1, "quantity": 999999}'
+
+# Place order
+curl -X POST http://localhost:8080/api/Orders/place \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"paymentMethodId": "pm_card_visa"}'
+
+# Expected: Order status = "Cancelled", Reason = "Insufficient stock"
+```
+
+### Troubleshooting
+
+#### Saga Stuck in "Submitted" State
+
+**Possible Causes:**
+
+- ProductCatalogService is down
+- RabbitMQ connection issues
+- ReserveStockCommand not being consumed
+
+**Debug Steps:**
+
+```bash
+# Check ProductCatalogService health
+curl http://localhost:5002/health
+
+# Check RabbitMQ queues
+# Visit http://localhost:15672 and check for unprocessed messages
+
+# Check logs
+docker compose logs productcatalogservice | grep "ReserveStock"
+```
+
+#### Saga Stuck in "StockReservedState"
+
+**Possible Causes:**
+
+- PaymentService is down
+- Stripe API issues
+- ProcessPaymentCommand not being consumed
+
+**Debug Steps:**
+
+```bash
+# Check PaymentService health
+curl http://localhost:5005/health
+
+# Check PaymentService logs
+docker compose logs paymentservice | grep "ProcessPayment"
+
+# Verify Stripe configuration
+docker compose exec paymentservice env | grep STRIPE
+```
+
+#### Events Not Being Consumed
+
+**Symptoms:**
+
+- Saga stuck in intermediate state
+- No logs in consumer services
+
+**Debug Steps:**
+
+```bash
+# 1. Check RabbitMQ queues
+# Visit http://localhost:15672
+# Look for messages in "Ready" state
+
+# 2. Check consumer registration
+docker compose logs orderservice | grep "Consumer"
+
+# 3. Restart services
+docker compose restart orderservice productcatalogservice paymentservice
+```
+
+#### Outbox Messages Not Being Published
+
+**Symptoms:**
+
+- Events saved to database but not published to RabbitMQ
+- `OutboxMessage` table has unprocessed messages
+
+**Solution:**
+
+```sql
+-- Check outbox messages
+SELECT * FROM "OutboxMessage"
+WHERE "SentTime" IS NULL
+ORDER BY "EnqueueTime" DESC;
+
+-- Manually trigger outbox processing (restart service)
+docker compose restart orderservice
+```
+
+### Best Practices
+
+#### 1. Idempotency
+
+Ensure all saga participants handle duplicate messages:
+
+```csharp
+public async Task Consume(ConsumeContext<IReserveStockCommand> context)
+{
+    // Check if already processed
+    var existingReservation = await _context.StockReservations
+        .FirstOrDefaultAsync(r => r.OrderId == context.Message.OrderId);
+
+    if (existingReservation != null)
+    {
+        _logger.LogInformation("Stock already reserved for Order {OrderId}", context.Message.OrderId);
+        await context.Publish<IStockReservedEvent>(new { OrderId = context.Message.OrderId });
+        return;
+    }
+
+    // Proceed with reservation...
+}
+```
+
+#### 2. Comprehensive Logging
+
+Add logging at each state transition:
+
+```csharp
+Initially(
+    When(OrderSubmitted)
+        .Then(context => {
+            _logger.LogInformation(
+                "Saga started for Order {OrderId}, User {UserId}, Amount {Amount}",
+                context.Saga.CorrelationId,
+                context.Message.UserId,
+                context.Message.TotalAmount
+            );
+        })
+        .TransitionTo(Submitted)
+        .Publish(context => new ReserveStockCommand { ... })
+);
+```
+
+#### 3. Error Handling
+
+Capture and store error details:
+
+```csharp
+When(PaymentFailed)
+    .Then(context => {
+        context.Saga.FailureReason = context.Message.Reason;
+        context.Saga.UpdatedAt = DateTime.UtcNow;
+
+        _logger.LogError(
+            "Payment failed for Order {OrderId}: {Reason}",
+            context.Saga.CorrelationId,
+            context.Message.Reason
+        );
+    })
+    .TransitionTo(Failed)
+```
+
+#### 4. Correlation
+
+Always use `CorrelationId` to link related events:
+
+```csharp
+Event(() => OrderSubmitted, x => x.CorrelateById(m => m.Message.OrderId));
+Event(() => StockReserved, x => x.CorrelateById(m => m.Message.OrderId));
+Event(() => PaymentCompleted, x => x.CorrelateById(m => m.Message.OrderId));
+```
+
+### Performance Metrics
+
+**Key Performance Indicators (KPIs):**
+
+- **Saga Success Rate**: > 95%
+- **Average Saga Duration**: < 5 seconds
+- **Failed Sagas**: < 5% of total
+- **Stuck Sagas**: 0 (older than 10 minutes)
+- **Stock Release Success Rate**: 100% (for payment failures)
+
+### Future Enhancements
+
+#### High Priority
+
+- [ ] **Saga Timeouts** - Add timeout for stock reservation (5 minutes) and payment processing (10 minutes)
+- [ ] **Enhanced Idempotency** - Add idempotency checks in all consumers
+- [ ] **Monitoring Dashboard** - Create Grafana dashboard for saga metrics
+
+#### Medium Priority
+
+- [ ] **Saga Versioning** - Support multiple saga versions for backward compatibility
+- [ ] **Saga Archival** - Archive completed sagas after 30 days
+- [ ] **Advanced Compensation** - Track stock reservations separately with automatic expiration
+
+#### Low Priority
+
+- [ ] **Saga Dashboard UI** - Build React component for saga visualization
+- [ ] **Performance Optimization** - Add database indexes, implement saga state caching
+- [ ] **Testing Improvements** - Create integration test suite, add chaos engineering tests
+
+### Benefits Achieved
+
+1. **Distributed Transaction Management** - Coordinates order processing across 3 services
+2. **Fault Tolerance** - Handles failures gracefully with compensating transactions
+3. **Eventual Consistency** - Maintains data consistency without distributed locks
+4. **Observability** - Full tracing and logging of saga execution
+5. **Scalability** - Asynchronous, event-driven architecture
+6. **Reliability** - Transactional Outbox ensures events are published exactly once
 
 ---
 

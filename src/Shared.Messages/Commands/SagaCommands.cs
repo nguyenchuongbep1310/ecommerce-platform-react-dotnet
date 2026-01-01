@@ -8,6 +8,12 @@ namespace Shared.Messages.Commands
         List<OrderItemDto> Items { get; }
     }
 
+    public interface IReleaseStockCommand
+    {
+        Guid OrderId { get; }
+        List<OrderItemDto> Items { get; }
+    }
+
     public interface IProcessPaymentCommand
     {
         Guid OrderId { get; }
@@ -28,6 +34,12 @@ namespace Shared.Messages.Commands
     }
 
     public class ReserveStockCommand : IReserveStockCommand
+    {
+        public Guid OrderId { get; set; }
+        public List<OrderItemDto> Items { get; set; } = new();
+    }
+
+    public class ReleaseStockCommand : IReleaseStockCommand
     {
         public Guid OrderId { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();

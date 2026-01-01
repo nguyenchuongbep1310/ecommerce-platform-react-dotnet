@@ -12,6 +12,7 @@
       "ServiceName": null,
       "UpstreamPathTemplate": "/api/Auth/{everything}",
       "UpstreamHttpMethod": [
+        "Get",
         "Post"
       ],
       "RateLimitOptions": {
@@ -32,6 +33,7 @@
         }
       ],
       "ServiceName": null,
+      "UpstreamPathTemplate": "/api/Auth/profile",
       "UpstreamHttpMethod": [
         "Get"
       ],
@@ -41,7 +43,21 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/Products/{everything}",
+      "DownstreamPathTemplate": "/api/v1/Products",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "productcatalogservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Products",
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/Products/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

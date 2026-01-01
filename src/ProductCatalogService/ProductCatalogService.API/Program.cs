@@ -192,7 +192,9 @@ builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient
 // 3. MassTransit Setup
 builder.Services.AddMassTransit(x =>
 {
+    // Register consumers for saga commands
     x.AddConsumer<ProductCatalogService.Infrastructure.Messaging.Consumers.ReserveStockConsumer>();
+    x.AddConsumer<ProductCatalogService.Infrastructure.Messaging.Consumers.ReleaseStockConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {

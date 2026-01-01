@@ -14,5 +14,9 @@ namespace OrderService.Sagas
         
         public string? PaymentMethodId { get; set; }
         public string? FailureReason { get; set; }
+        
+        // Store order items as JSON for compensating transactions
+        // Format: [{"ProductId":1,"Quantity":2,"UnitPrice":99.99},...]
+        public string? ItemsJson { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using MassTransit;
 using Shared.Messages.Events;
 using Shared.Messages.Commands;
+using System.Text.Json;
 
 namespace OrderService.Sagas
 {
@@ -23,6 +24,10 @@ namespace OrderService.Sagas
                         context.Saga.UserId = context.Message.UserId;
                         context.Saga.TotalAmount = context.Message.TotalAmount;
                         context.Saga.CreatedAt = DateTime.UtcNow;
+                        context.Saga.UpdatedAt = DateTime.UtcNow;
+                        
+                        // Store items as JSON for potential compensating transactions
+                        context.Saga.ItemsJson = JsonSerializer.Serialize(context.Message.Items);
                     })
                     .TransitionTo(Submitted)
                     .Publish(context => new ReserveStockCommand 
@@ -54,11 +59,30 @@ namespace OrderService.Sagas
 
             During(StockReservedState,
                 When(PaymentCompleted)
+                    .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
                     .TransitionTo(Completed)
                     .Publish(context => new CompleteOrderCommand { OrderId = context.Saga.CorrelationId }),
                 When(PaymentFailed)
-                    .Then(context => context.Saga.FailureReason = context.Message.Reason)
+                    .Then(context => 
+                    {
+                        context.Saga.FailureReason = context.Message.Reason;
+                        context.Saga.UpdatedAt = DateTime.UtcNow;
+                    })
                     .TransitionTo(Failed)
+                    // COMPENSATING TRANSACTION: Release reserved stock
+                    .PublishAsync(context => 
+                    {
+                        // Deserialize items from JSON
+                        var items = string.IsNullOrEmpty(context.Saga.ItemsJson) 
+                            ? new List<OrderItemDto>()
+                            : JsonSerializer.Deserialize<List<OrderItemDto>>(context.Saga.ItemsJson) ?? new List<OrderItemDto>();
+                        
+                        return context.Init<IReleaseStockCommand>(new
+                        {
+                            OrderId = context.Saga.CorrelationId,
+                            Items = items
+                        });
+                    })
                     .Publish(context => new CancelOrderCommand
                     {
                         OrderId = context.Saga.CorrelationId,

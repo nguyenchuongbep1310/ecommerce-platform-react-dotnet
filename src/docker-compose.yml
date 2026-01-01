@@ -178,6 +178,10 @@ services:
       context: ..
       dockerfile: src/ApiGateway/ApiGateway/Dockerfile
     container_name: apigateway
+    environment:
+      JwtSettings__SecretKey: "${JWT_SECRET}"
+      JwtSettings__Issuer: "${JWT_ISSUER}"
+      JwtSettings__Audience: "${JWT_AUDIENCE}"
     ports:
       - "8080:8080" # The main entry point for API requests (Frontend proxies here)
     depends_on:
