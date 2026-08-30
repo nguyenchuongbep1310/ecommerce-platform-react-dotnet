@@ -137,3 +137,6 @@ vendor/
 *.so
 *.so.*
 *.dylib
+# Markdown Documentation (except README.md)
+**/*.md
+!README.md
